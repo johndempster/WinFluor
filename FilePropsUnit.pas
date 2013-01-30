@@ -4,7 +4,8 @@ unit FilePropsUnit;
 // -----------------------------------------
 // 21-6-05 .. Started
 // 02-03-06 No. bytes in file header added to properties
-// 13-07-10 File header text added to properties 
+// 13-07-10 File header text added to properties
+// 30.01.13 Z stack properties added
 
 interface
 
@@ -91,9 +92,6 @@ procedure TFilePropsFrm.FormShow(Sender: TObject);
 // ------------------------------------------
 // Initialise controls when form is displayed
 // ------------------------------------------
-var
-    i : Integer ;
-    Header : Array[0..cNumIDRHeaderBytes-1] of Char ;
 begin
 
      // Set control sizes
@@ -125,6 +123,12 @@ begin
      meProperties.lines.Add( format('Pixel size:  %.4g %s',
                              [MainFrm.IDRFile.XResolution,
                               MainFrm.IDRFile.ResolutionUnits])) ;
+
+    meProperties.lines.Add( format('No. Z sections: %d',[MainFrm.IDRFile.NumZSections])) ;
+    meProperties.lines.Add( format('Z spacing %.4g %s',
+                            [MainFrm.IDRFile.ZSpacing,MainFrm.IDRFile.ResolutionUnits])) ;
+    meProperties.lines.Add( format('Z position of first section %.4g %s',
+                            [MainFrm.IDRFile.ZStart,MainFrm.IDRFile.ResolutionUnits])) ;
 
      meProperties.lines.Add( format('File header size (bytes):  %d',
                                     [MainFrm.IDRFile.NumIDRHeaderBytes])) ;

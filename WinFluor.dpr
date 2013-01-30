@@ -6,8 +6,6 @@ uses
   About in 'about.pas' {AboutBox},
   RecUnit in 'RecUnit.pas' {RecordFrm},
   ViewUnit in 'ViewUnit.pas' {ViewFrm},
-  HamC4880 in '..\Components\HamC4880.pas',
-  pvcam in '..\Components\pvcam.pas',
   SetupUnit in 'SetupUnit.pas' {SetupFrm},
   LabIOUnit in 'LabIOUnit.pas' {LabIO: TDataModule},
   HistogramUnit in 'HistogramUnit.pas' {HistogramFrm},
@@ -19,7 +17,6 @@ uses
   Setaxes in 'SETAXES.PAS' {SetAxesFrm},
   AmpModule in 'AmpModule.pas' {Amplifier: TDataModule},
   NIDAQCNS in 'nidaqcns.pas',
-  Maths in '..\Components\Maths.pas',
   Sealtest in 'SEALTEST.PAS' {SealTestFrm},
   AverageUnit in 'AverageUnit.pas' {AverageFrm},
   LineProfileUnit in 'LineProfileUnit.pas' {LineProfileFrm},
@@ -48,7 +45,6 @@ uses
   ViewPlotUnit in 'ViewPlotUnit.pas' {ViewPlotFrm},
   RecPlotUnit in 'RecPlotUnit.pas' {RecPlotFrm},
   StimulusDefaultsUnit in 'StimulusDefaultsUnit.pas' {StimulusDefaultsFrm},
-  AndorUnit in '..\Components\AndorUnit.pas',
   SetCCDReadoutUnit in 'SetCCDReadoutUnit.pas' {SetCCDReadoutFrm},
   AVITypes in 'AVITypes.pas',
   SpectrumUnit in 'SpectrumUnit.pas' {SpectrumFrm},
@@ -68,7 +64,9 @@ uses
   PlaybackSetupUnit in 'PlaybackSetupUnit.pas' {PlaybackSetupFrm},
   DigitalFilterUnit in 'DigitalFilterUnit.pas' {DigitalFilterFrm},
   DirectControlUnit in 'DirectControlUnit.pas' {DirectControlFrm},
-  HTMLHelpViewer in '..\Components\HTMLHelpViewer.pas';
+  HTMLHelpViewer in '..\SESComponents\HTMLHelpViewer.pas',
+  Maths in '..\SESComponents\Maths.pas',
+  ZStageUnit in 'ZStageUnit.pas' {ZStage: TDataModule};
 
 {$R *.TLB}
 
@@ -100,5 +98,6 @@ begin
   Application.CreateForm(TPhotoStimulator, PhotoStimulator);
   Application.CreateForm(TExportROITimeCourseFrm, ExportROITimeCourseFrm);
   Application.CreateForm(TPlaybackStimulator, PlaybackStimulator);
+  Application.CreateForm(TZStage, ZStage);
   Application.Run;
 end.

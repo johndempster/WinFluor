@@ -123,6 +123,9 @@ unit RecUnit;
 // 04.12.12 JD Option added to turn on excitation when recording starts and off when it ends
 // 14.12.12 V3.4.3 Turn on when recording option added. When selected, excitation light is turned on
 //                 when recording starts and off at which it stops.
+// 28.01.13 V3.3.4 JD Piezo Z focus control added
+//                 FrameDisplayed array removed. Could have been causing random memory access violations
+//                 when overwriting other variables since was being written beyond end of array.
 
 
 {$DEFINE USECONT}
@@ -285,6 +288,18 @@ type
     Label6: TLabel;
     cbDisplayZoom: TComboBox;
     ckExcitationOnWhenRecording: TCheckBox;
+    ZStageGrp: TGroupBox;
+    edZPosition: TValidatedEdit;
+    sbShowHideZStackSettings: TSpeedButton;
+    ZStackGrp: TGroupBox;
+    Label21: TLabel;
+    edZStartPos: TValidatedEdit;
+    Label22: TLabel;
+    edZStepSize: TValidatedEdit;
+    Label23: TLabel;
+    edZNumSteps: TValidatedEdit;
+    ckZStackEnabled: TCheckBox;
+    sbZPosition: TScrollBar;
     procedure FormShow(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -360,6 +375,10 @@ type
     procedure edBurstDurationKeyPress(Sender: TObject; var Key: Char);
     procedure edBurstIntervalKeyPress(Sender: TObject; var Key: Char);
     procedure ckExcitationOnWhenRecordingClick(Sender: TObject);
+    procedure sbZPositionChange(Sender: TObject);
+    procedure edZPositionKeyPress(Sender: TObject; var Key: Char);
+    procedure ckZStackEnabledClick(Sender: TObject);
+    procedure sbShowHideZStackSettingsClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -381,7 +400,7 @@ type
     CameraStartFrame : Integer ;                       // First frame after camera start
 
     // Contains FrameCounter number of frame type on display
-    FrameDisplayed : Array[0..MaxFrameType] of Integer ;
+    //FrameDisplayed : Array[0..2*MaxFrameType] of Integer ;
 
     // Multi-wavelength sequence
     NumFramesPerWavelengthCycle : Integer ;
@@ -454,18 +473,20 @@ type
     FirstResize : Boolean ;
     FormResizeCounter : Integer ;
 
-    DACUpdateInterval : Single ;
-    NumDACPointsPerCycle : Integer ;
-    NumDACPointsPerFrame : Integer ;
-    NumFramesPerCycle : Integer ;
-    NumFramesPerTimeLapseInterval : Integer ;
-    NumTimeLapseIntervalsPerCycle : Integer ;
+    DACUpdateInterval : Single ;               // D/A timing update interval (s)
+    NumDACPointsPerCycle : Integer ;           // No. of D/A output time points in timing cycle buffer
+    NumDACPointsPerFrame : Integer ;           // No. of D/A output time points per frame
+    NumFramesPerCycle : Integer ;              // No. of camera frames in timing buffer cycle
+    NumFramesPerZStep : Integer ;              // No. of camera frames per Z axis step
+    NumFramesPerZStack : Integer ;             // No. of camera frams in Z axis stack
+    NumFramesPerTimeLapseInterval : Integer ;  // No. frames per time lapse interval
+    NumTimeLapseIntervalsPerCycle : Integer ;  // No. time lapse intervals in timing cycle buffer
 
     // DAC output buffers
-    DACBufs : Array[0..MaxDevices] of PBig16bitArray ;
+    DACBufs : Array[0..MaxDevices] of PBig16bitArray ;  // D/A output waveform buffer pointers
 
     // Digital output buffers
-    DigBufs : Array[0..MaxDevices] of PBig32bitArray ;
+    DigBufs : Array[0..MaxDevices] of PBig32bitArray ;  // Digital output buffer pointers
 
     LoadNextProtocolFile : Boolean ;         // Load next protocol file from existing stim program
     RestartRecording : Boolean ;
@@ -514,6 +535,7 @@ type
     procedure StartTimingCycle ;
     procedure StopTimingCycle ;
     Procedure UpdateADCDisplay ;
+
     procedure DisplayImage(
               StartAt : Integer ;
               FrameType : Integer ;
@@ -564,6 +586,7 @@ type
   procedure ShowHideDisplaySettingsPanel ;
   procedure ShowHideShadeCorSettingsPanel ;
   procedure ShowHideLightStimPage ;
+  procedure ShowHideZStackSettings ;
   procedure ResizeControlPanel ;
   procedure DoShadingCorrection( FrameType : Integer ) ;
   procedure SmoothImage(
@@ -618,7 +641,7 @@ implementation
 uses Main, mmsystem, pvcam, maths, SESCam, FileIOUnit,
   ViewUnit, AmpModule, SealTest , LogUnit,
   StimModule, RecPlotUnit, SetCCDReadoutUnit, SetLasersUnit , SnapUnit,
-  PhotoStimModule;
+  PhotoStimModule, ZStageUnit;
 
 const
     ByteLoValue = 0 ;
@@ -908,6 +931,14 @@ begin
      cbShadeCorNormalisation.ItemIndex := 0 ;
      KeepBackgroundBufs := False ;
 
+     // ZStage
+     ZStageGrp.Visible := ZStage.Available ;
+     edZPosition.Value := ZStage.Position ;
+     edZStartPos.Value := ZStage.StartAt ;
+     edZStepSize.Value := ZStage.StepSize ;
+     edZNumSteps.Value := ZStage.NumSteps ;
+     ckZStackEnabled.Checked := ZStage.StackEnabled and ZStage.Available ;
+
      // Select which panel settings are to be visible when form opens
      sbImageCaptureShowSettings.Down := False ;
      ShowHideImageCaptureSettingsPanel ;
@@ -917,6 +948,9 @@ begin
      ShowHideShadeCorSettingsPanel ;
      sbLightStimShowSettings.Down := True ;
      ShowHideLightStimPage ;
+     sbShowHideZStackSettings.Down := False ;
+     ShowHideZStackSettings ;
+
      ResizeControlPanel ;
 
      MainFrm.StatusBar.SimpleText := ' Camera initialised' ;
@@ -1107,7 +1141,7 @@ begin
    // Initialise frames counters
    for i := 0 to NumFrameTypes-1 do begin
        FrameTypeCounter[i] := 0 ;
-       FrameDisplayed[i] := -1 ;
+       //FrameDisplayed[i] := -1 ;
        LatestFrames[i] := 0 ;             // Index into frame buffer
        LatestFramesDisplayed[i] := True ; // Mark all as displayed
        LatestROIValue[i] := 0 ;
@@ -1590,6 +1624,7 @@ var
     NumSlowFrames : Integer ;
     StimDuration : Single ;
     RepeatedStimulus : Boolean ;
+    EnableZStack : Boolean ;
 begin
 
     // Default frame type cycle (if no light source)
@@ -1689,7 +1724,16 @@ begin
         end ;
 
      FramesDivFactor := Max(FramesDivFactor,1) ;
-     NumFramesPerCycle := (Max(NumFramesPerCycle div FramesDivFactor,1))*FramesDivFactor ;
+     if ckZStackEnabled.Checked and ZStageGrp.Visible then begin
+        ZStage.NumSteps := Round(edZNumSteps.Value) ;
+        NumFramesPerZStep := FramesDivFactor*2 ;
+        NumFramesPerZStack := NumFramesPerZStep*ZStage.NumSteps ;
+        end
+     else begin
+        NumFramesPerZStep := FramesDivFactor ;
+        NumFramesPerZStack := FramesDivFactor ;
+        end ;
+     NumFramesPerCycle := Max( NumFramesPerCycle div NumFramesPerZStack,1)*NumFramesPerZStack ;
 
      // Set frame cycle time to time lapse interval
      if (cbRecordingMode.ItemIndex = rmTimeLapse) or (cbRecordingMode.ItemIndex = rmTimeLapseBurst)then begin
@@ -1743,6 +1787,17 @@ begin
 
      // Update light source shutter
      UpdateLightSourceShutter ;
+
+     // Update Z position
+     if RecordingMode = rmRecordingInProgress then EnableZStack := True
+                                              else EnableZStack := False ;
+     ZStage.UpdateDACBuffer( EnableZStack,
+                             ZStage.Position,
+                             NumFramesPerCycle,
+                             NumFramesPerZStep,
+                             NumDACPointsPerFrame,
+                             NumDACPointsPerCycle,
+                             DACBufs ) ;
 
      // Update photostimulus waveforms
      UpdatePhotoStimulus( PhotoStimulusRequired ) ;
@@ -2991,6 +3046,7 @@ begin
        ShowHideDisplaySettingsPanel ;
        ShowHideShadeCorSettingsPanel ;
        ShowHideLightStimPage ;
+       ShowHideZStackSettings ;
        ResizeControlPanel ;
        FormResizeCounter := 0 ;
        end ;
@@ -3188,7 +3244,8 @@ begin
                                MainFrm.LUTs[FrameTypeToBeDisplayed*LUTSize],
                                BitMaps[FrameTypeToBeDisplayed],
                                Images[FrameTypeToBeDisplayed] ) ;
-                 FrameDisplayed[LatestFrames[FrameTypeToBeDisplayed]] := LatestFrames[FrameTypeToBeDisplayed] ;
+                 outputdebugstring(pchar(format('%d',[LatestFrames[FrameTypeToBeDisplayed]])));
+                 //FrameDisplayed[LatestFrames[FrameTypeToBeDisplayed]] := LatestFrames[FrameTypeToBeDisplayed] ;
                  LatestFramesDisplayed[FrameTypeToBeDisplayed] := True ;
                  end ;
 
@@ -3993,6 +4050,16 @@ begin
      // Set dimensions of frame stored in file
      MainFrm.IDRFile.FrameWidth := MainFrm.Cam1.FrameWidth ;
      MainFrm.IDRFile.FrameHeight := MainFrm.Cam1.FrameHeight ;
+     if ckZStackEnabled.Checked and ZStageGrp.Visible then begin
+        MainFrm.IDRFile.NumZSections := Round(edZNumSteps.Value) ;
+        MainFrm.IDRFile.ZStart := edZStartPos.Value ;
+        MainFrm.IDRFile.ZSpacing := edZStepSize.Value ;
+        end
+     else begin
+        MainFrm.IDRFile.NumZSections := 1 ;
+        MainFrm.IDRFile.ZStart := 0.0 ;
+        MainFrm.IDRFile.ZSpacing := 1.0 ;
+        end ;
 
      MainFrm.Recording := True ;
      bRecord.Enabled := False ;
@@ -4169,6 +4236,11 @@ begin
         bStartStimulus.Enabled := True ;
         bStopStimulus.Enabled := False ;
         end ;
+
+     // Get Z stage settings
+     ZStage.StartAt := edZStartPos.Value ;
+     ZStage.StepSize := edZStepSize.Value ;
+     ZStage.NumSteps := Round(edZNumSteps.Value) ;
 
      // Start image capture
      StartCamera ;
@@ -5138,6 +5210,15 @@ begin
      // Stop seal test (if it is running)
      if MainFrm.FormExists('SnapFrm')then SnapFrm.StopLiveImaging ;
 
+     // Set Z stage control
+     ZStageGrp.Visible := ZStage.Available ;
+     edZPosition.Value := ZStage.Position ;
+     edZPosition.LoLimit := ZStage.MinPosition ;
+     edZPosition.HiLimit := ZStage.MaxPosition ;
+     sbZPosition.Min := Round(ZStage.MinPosition/ZStage.MinStepSize) ;
+     sbZPosition.Max := Round(ZStage.MaxPosition/ZStage.MinStepSize) ;
+     sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
+
      // Start camera
      if not CameraRunning then StartCamera ;
 
@@ -5471,6 +5552,28 @@ begin
      end;
 
 
+procedure TRecordFrm.ShowHideZStackSettings ;
+// ---------------------------
+// Show/Hide Z stage settings
+// ---------------------------
+begin
+
+     ZStackGrp.Visible := sbShowHideZStackSettings.Down ;
+
+     if not ZStackGrp.Visible then begin
+        // Hide settings
+        ZStageGrp.Height := edZPosition.Top + edZPosition.Height + 5 ;
+        end
+     else begin
+        // Show settings
+        ZStageGrp.Height := ZStackGrp.Top + ZStackGrp.Height + 5 ;
+        end ;
+
+     MarkGrp.Top := ZStageGrp.Top + ZStageGrp.Height + 5 ;
+     end;
+
+
+
 procedure TRecordFrm.lbImageCaptureShowSettingsClick(Sender: TObject);
 begin
     ShowHideImageCaptureSettingsPanel ;
@@ -5508,6 +5611,11 @@ begin
      ShadingGrp.Top := DisplayGrp.Top + DisplayGrp.Height + 5 ;
      LightStimGrp.Top := ShadingGrp.Top + ShadingGrp.Height + 5 ;
      MarkGrp.Top := LightStimGrp.Top + LightStimGrp.Height + 5 ;
+     if ZStageGrp.Visible then begin
+        ZStageGrp.Top := LightStimGrp.Top + LightStimGrp.Height + 5 ;
+        MarkGrp.Top := ZStageGrp.Top + ZStageGrp.Height + 5 ;
+        end
+     else MarkGrp.Top := LightStimGrp.Top + LightStimGrp.Height + 5 ;
      ControlGrp.Height := ClientHeight - ControlGrp.Top - 5 ;
      end ;
 
@@ -6072,6 +6180,60 @@ begin
 procedure TRecordFrm.ckExcitationOnWhenRecordingClick(Sender: TObject);
 begin
      MainFrm.ExcitationOnWhenRecording := ckExcitationOnWhenRecording.Checked ;
+     end;
+
+procedure TRecordFrm.sbZPositionChange(Sender: TObject);
+// ------------------------
+// Z stage position changed
+// ------------------------
+begin
+    if not InitialisationComplete then Exit ;
+    if RecordingMode <> rmRecordingInProgress then begin
+       ZStage.UpdateDACBuffer( False,
+                               sbZPosition.Position*ZStage.MinStepSize,
+                               NumFramesPerCycle,
+                               NumFramesPerZStep,
+                               NumDACPointsPerFrame,
+                               NumDACPointsPerCycle,
+                               DACBufs ) ;
+       edZPosition.Value := ZStage.Position ;
+       end;
+    end ;
+
+procedure TRecordFrm.edZPositionKeyPress(Sender: TObject; var Key: Char);
+// ------------------
+// Z position changed
+// ------------------
+begin
+      if (Key = #13) and (RecordingMode <> rmRecordingInProgress) then begin
+         ZStage.UpdateDACBuffer( False,
+                                 edZPosition.Value,
+                                 NumFramesPerCycle,
+                                 NumFramesPerZStep,
+                                 NumDACPointsPerFrame,
+                                 NumDACPointsPerCycle,
+                                 DACBufs ) ;
+         sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
+         edZPosition.Value := ZStage.Position ;
+         end ;
+      end;
+
+
+
+procedure TRecordFrm.ckZStackEnabledClick(Sender: TObject);
+// -----------------------
+// Enable/disable Z stack
+// -----------------------
+begin
+     ZStage.StackEnabled := ckZStackEnabled.Checked ;
+     end;
+
+procedure TRecordFrm.sbShowHideZStackSettingsClick(Sender: TObject);
+// --------------------------
+// Show/Hide Z stack settings
+// --------------------------
+begin
+     ShowHideZStackSettings ;
      end;
 
 end.

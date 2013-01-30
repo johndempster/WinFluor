@@ -103,6 +103,9 @@ type
     ckAutoOptimise: TCheckBox;
     Label6: TLabel;
     cbDisplayZoom: TComboBox;
+    ZStageGrp: TGroupBox;
+    edZPosition: TValidatedEdit;
+    sbZPosition: TScrollBar;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
@@ -140,6 +143,8 @@ type
     procedure bSetLaserIntensityClick(Sender: TObject);
     procedure ckAutoOptimiseClick(Sender: TObject);
     procedure ckContrast6SDOnlyClick(Sender: TObject);
+    procedure sbZPositionChange(Sender: TObject);
+    procedure edZPositionKeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
 
@@ -283,7 +288,7 @@ var
 implementation
 
 uses Main, maths , SetCCDReadoutUnit, LightSourceUnit, LabIOUnit, RecUnit,
-  LogUnit, SetLasersUnit;
+  LogUnit, SetLasersUnit, ZStageUnit;
 
 {$R *.dfm}
 
@@ -2015,6 +2020,15 @@ begin
      // Start camera
      if not CameraRunning then StartCamera ;
 
+     // Set Z stage control
+     ZStageGrp.Visible := ZStage.Available ;
+     edZPosition.Value := ZStage.Position ;
+     edZPosition.LoLimit := ZStage.MinPosition ;
+     edZPosition.HiLimit := ZStage.MaxPosition ;
+     sbZPosition.Min := Round(ZStage.MinPosition/ZStage.MinStepSize) ;
+     sbZPosition.Max := Round(ZStage.MaxPosition/ZStage.MinStepSize) ;
+     sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
+
      Timer.Enabled := True ;
 
      end;
@@ -2601,6 +2615,7 @@ begin
         end ;
 
      ExcitationLightGrp.Top := ShadingGrp.Top + ShadingGrp.Height + 2 ;
+     ZStageGrp.Top := ExcitationLightGrp.Top + ExcitationLightGrp.Height + 2 ;
 
      end;
 
@@ -2644,5 +2659,26 @@ procedure TSnapFrm.ckContrast6SDOnlyClick(Sender: TObject);
 begin
     MainFrm.Contrast6SD := ckContrast6SDOnly.Checked ;
     end;
+
+procedure TSnapFrm.sbZPositionChange(Sender: TObject);
+// ------------------------
+// Z Stage position changed
+// ------------------------
+begin
+    ZStage.Position := sbZPosition.Position*ZStage.MinStepSize ;
+    edZPosition.Value := ZStage.Position ;
+    end;
+
+procedure TSnapFrm.edZPositionKeyPress(Sender: TObject; var Key: Char);
+// ------------------
+// Z position changed
+// ------------------
+begin
+      if Key = #13 then begin
+         ZStage.Position := edZPosition.Value ;
+         sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
+         edZPosition.Value := ZStage.Position ;
+         end ;
+      end;
 
 end.

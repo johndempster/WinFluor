@@ -445,8 +445,6 @@ procedure TUltima.StartADCRecording ;
 // -------------------
 // Start A/D recording
 // -------------------
-var
-    i : Integer ;
 begin
 
     // Create analogue recording form if it does not already exist
@@ -1070,9 +1068,7 @@ var
     ImportFileName : String ;
     PFrameBuf,PBufPointer : Pointer ; // Image frame buffer pointer
     PImageBuf : PIntArray ; // Image frame buffer pointer
-    FileNum : Integer ;    // Index into OpenDialog.Files list
     iFrame : Integer ;     // Frame counter
-    imgFrame : Integer ;
     NumFramesImported : Integer ;
     NumFiles : Integer ;
     InterLineTime : Single ;
@@ -1384,7 +1380,6 @@ var
     SeqNode,FRNode : IXMLNode ;
     i : Integer ;
     FrameNum : Integer ;
-    FrameFound : Boolean ;
     Code : Integer ;
 begin
 
@@ -1446,7 +1441,6 @@ var
     SeqNode,FRNode : IXMLNode ;
     i : Integer ;
     FrameNum : Integer ;
-    FrameFound : Boolean ;
     Code : Integer ;
 begin
 
@@ -1492,9 +1486,9 @@ procedure TUltima.GetStateXMLSettings(
 // Get latest Prairie-View single image folder
 // ------------------------------------------
 var
-    FileHandle,i : Integer ;
+    FileHandle : Integer ;
     PVStateNode : IXMLNode ;
-    KeyName,KeyValue : String ;
+    KeyValue : String ;
     FilePath : String ;
     COde : Integer ;
 begin

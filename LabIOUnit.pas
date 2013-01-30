@@ -791,7 +791,7 @@ var
 begin
 
     // Update DAC default output state
-    for ch := 0 to nChannels do DACOutState[Device,ch] := DACVolts[ch] ;
+    for ch := 0 to nChannels-1 do DACOutState[Device,ch] := DACVolts[ch] ;
 
     case FNIDAQAPI of
         NIDAQMX : NIDAQMX_WriteDACs( Device,
@@ -1593,7 +1593,7 @@ var
     ADCMaxVal : Single ;
     ADCMinVal : Single ;
     ScaledValue : Single ;
-    t0 : Integer ;
+    //t0 : Integer ;
 
 begin
 
@@ -1604,7 +1604,7 @@ begin
 
     if (not FADCCircularBuffer) and (FADCNumSamplesAcquired >= ADCBufNumSamples) then Exit ;
 
-    t0 := TimeGetTime ;
+    //t0 := TimeGetTime ;
 
     // Read data from A/D converter
     DAQmxReadBinaryI16( ADCTask[Device],
@@ -1719,8 +1719,7 @@ var
     ClockSource : ANSIString ;
     ChannelList : ANSIString ;
     i,iFrom,iTo,nCopy,nSource,EndOffset : Integer ;
-    NumSamplesToWrite,NumSamplesWritten : Integer ;
-    VScale : Double ;
+    NumSamplesWritten : Integer ;
     UpdateRate : Double ;
     NumPointsInBuffer : Integer ;
     IOBuf : PBig16bitArray ;
@@ -1835,10 +1834,12 @@ procedure TLabIO.NIDAQMX_UpdateDACOutputBuffer ;
 // Update internal NIDAQmx DAC output buffer
 // -------------------------------------------------------------
 var
-    i,ch,iDev,iFrom,iTo,iPointer,nChannels,EndOfBuf,NumSamplesWritten,tt,t1 : Integer ;
+    i,ch,iDev,iFrom,iTo,iPointer,EndOfBuf,nChannels,NumSamplesWritten : Integer ;
+
     NumPointsToWrite : Cardinal ;
     CircularBuffer : Boolean ;
     pBuf : PBig16bitArray ;
+    //tt,t1 : Integer ;
 begin
     for iDev := 1 to NumDevices do if DACActive[iDev] then begin ;
 
@@ -1846,9 +1847,9 @@ begin
         DAQmxGetWriteSpaceAvail( DACTask[iDev], NumPointsToWrite ) ;
         if NumPointsToWrite = 0 then continue ;
 
-        t1 := Timegettime ;
-        tt := t1-t0 ;
-        t0 := t1 ;
+        //t1 := Timegettime ;
+        //tt := t1-t0 ;
+        //t0 := t1 ;
 
         // Copy DAC data into output buffer
         iPointer := DAC[iDev].Pointer ;
@@ -1885,7 +1886,7 @@ begin
                            Nil
                            )) ;
 
-        t1 := Timegettime ;
+        //t1 := Timegettime ;
         //outputdebugstring(pchar(format('%d %d %d %d %d',[NumPointsToWrite,NumSamplesWritten,iPointer,tt,t1-t0])));
         end ;
 
@@ -2053,9 +2054,7 @@ function TLabIO.NIDAQMX_MemoryToDIG(
   --------------------------}
 var
     PortList : ANSIString ;
-    SampleMode : Integer ;
     ClockSource : ANSIString ;
-    NumBytesWritten : Integer ;
     NumSamplesToWrite,NumPointsInBuffer,NumSamplesWritten : Integer ;
 begin
      Result := False ;
@@ -2146,7 +2145,8 @@ procedure TLabIO.NIDAQMX_UpdateDIGOutputBuffer ;
 // Update internal NIDAQmx digital output buffer
 // -------------------------------------------------------------
 var
-    i,ch,iDev,iFrom,iTo,iPointer,nChannels,EndOfBuf,NumSamplesWritten,tt,t1 : Integer ;
+    i,iDev,iFrom,iTo,iPointer,EndOfBuf,NumSamplesWritten : Integer ;
+    //tt,t1 : Integer ;
     NumPointsToWrite : Cardinal ;
     CircularBuffer : Boolean ;
     pBuf : PBig32bitArray ;
@@ -2159,16 +2159,16 @@ begin
         DAQmxGetWriteSpaceAvail( DIGTask[iDev], NumPointsToWrite ) ;
         if NumPointsToWrite = 0 then continue ;
 
-        t1 := Timegettime ;
-        tt := t1-t0 ;
-        t0 := t1 ;
+        //t1 := Timegettime ;
+        //tt := t1-t0 ;
+        //t0 := t1 ;
 
         GetMem( IOBuf, NumPointsToWrite*SizeOf(Integer)) ;
 
         // Copy DAC data into output buffer
         iPointer := DIG[iDev].Pointer ;
 
-        nChannels := DIG[iDev].NumChannels ;
+        //nChannels := DIG[iDev].NumChannels ;
         CircularBuffer := DIG[iDev].CircularBuffer ;
         EndOfBuf := DIG[iDev].EndOfBuf ;
         iFrom := DIG[iDev].Pointer ;
@@ -2196,7 +2196,7 @@ begin
                                           NumSamplesWritten,
                                           Nil)) ;
 
-        t1 := Timegettime ;
+        //t1 := Timegettime ;
         //outputdebugstring(pANSIChar(format('%d %d %d %d %d',[NumPointsToWrite,NumSamplesWritten,iPointer,tt,t1-t0])));
         FreeMem(IOBuf) ;
         end ;
@@ -2994,7 +2994,6 @@ begin
      ADCVoltageRangeAtX1Gain[DeviceNum] := V ;
 
      // Determine voltage range of valid gains
-     Done := False ;
      NumVRanges := 0 ;
      for iGain := 0 to High(Gains) do begin
          Err := AI_Read( DeviceNum, 0, Gains[iGain], iValue ) ;
@@ -3090,6 +3089,7 @@ begin
            1 : SyncLine := ND_RTSI_0 ;
            2 : SyncLine := ND_RTSI_1 ;
            3 : SyncLine := ND_RTSI_1 ;
+           else SyncLine := ND_RTSI_1 ;
            end ;
         CheckError( Select_Signal (Device, ND_IN_SCAN_START, SyncLine, ND_HIGH_TO_LOW)) ;
         end
@@ -3217,6 +3217,7 @@ begin
            1 : SyncLine := ND_RTSI_0 ;
            2 : SyncLine := ND_RTSI_1 ;
            3 : SyncLine := ND_RTSI_1 ;
+           else SyncLine := ND_RTSI_1 ;
            end ;
         end
      else begin
@@ -3298,7 +3299,7 @@ function TLabIO.NIDAQ_StopDAC(
   Stop D/A output
   --------------- }
 begin
-
+     Result := False ;
      if (Device < 1) or (Device > NumDevices) then Exit ;
      if NumDACs[Device] <= 0 then Exit ;
      if not DACActive[Device] then Exit ;
@@ -3348,7 +3349,7 @@ procedure TLabIO.NIDAQ_WriteDAC(
   Write values to a D/A converter output channel
   ----------------------------------------------}
 var
-   iDACValue,ch : Integer ;
+   iDACValue : Integer ;
    iDACValue16 : SmallInt ;
    DACMinValue : Integer ;
 begin

@@ -43,6 +43,7 @@ unit FileIOUnit;
 //                  CALBARTH=', MainFrm.CalibrationBarThickness added
 // 23.07.12 .... JD 'STARTSTIMONREC=', MainFrm.StartStimOnRecord added
 // 04.12.12 .... JD 'EXCONREC=', MainFrm.ExcitationOnWhenRecording added
+// 29.01.13 .... JD Z stage settings added to INI file ZStage.SaveSettings(), ZStage.ReadSettings();
 
 interface
 
@@ -98,7 +99,7 @@ var
 implementation
 
 uses Main, shared, LabIOUnit, maths, AmpModule , RecUnit, ViewUnit,
-  LightSourceUnit;
+  LightSourceUnit, ZStageUnit;
 
 {$R *.DFM}
 
@@ -486,6 +487,9 @@ begin
 
      AppendLogical( Header, 'STARTSTIMONREC=', MainFrm.StartStimOnRecord ) ;
 
+     // Save Z Stage control settings
+     ZStage.SaveSettings( Header ) ;
+
      if FileWrite( INIFileHandle, Header, Sizeof(Header) ) <> Sizeof(Header) then
         ShowMessage( ' Initialisation file write failed ' ) ;
 
@@ -505,7 +509,7 @@ procedure TFileIO.LoadInitialisationFile(
 // Load initialisation file
 // ------------------------
 var
-   Header : array[1..cNumIDRHeaderBytes] of char ;
+   Header : array[1..cNumIDRHeaderBytes] of ANSIchar ;
    i,iWav,iSeq,ch,INIFileHandle : Integer ;
    iValue : Integer ;
    fValue : Single ;
@@ -743,7 +747,7 @@ begin
          ReadString( Header, format('EXCSEQNAM%d=',[iSeq]), MainFrm.EXCSequenceName[iSeq] ) ;
          for iWav := 0 to MainFrm.EXCNumWavelengths[iSeq] do begin
              ReadInt( Header, format('EXCSEQ%dW%d=',[iSeq,iWav]), MainFrm.EXCSequence[iWav,iSeq].WavelengthNum) ;
-             MainFrm.EXCSequence[iWav,iSeq].DivideFactor := 1 ;             
+             MainFrm.EXCSequence[iWav,iSeq].DivideFactor := 1 ;
              ReadInt( Header, format('EXCSEQ%dDF%d=',[iSeq,iWav]), MainFrm.EXCSequence[iWav,iSeq].DivideFactor) ;
              end ;
          end ;
@@ -831,6 +835,7 @@ begin
 
      ReadInt( Header, 'IOCLKSYNC=', MainFrm.IOConfig.ClockSyncLine ) ;
 
+
      // Event detection settings
 {     ReadFloat( Header, 'EVANDEADTIME=', MainFrm.EventAnalysis.DeadTime ) ;
      ReadFloat( Header, 'EVANTHRESHOLD=', MainFrm.EventAnalysis.DetectionThreshold ) ;
@@ -861,7 +866,7 @@ begin
      ReadFloat( Header, 'PSMICPERPY=',MainFrm.PhotoStim.YMicronsPerPixel ) ;
      ReadString( Header, 'PSPVLOG=',MainFrm.PhotoStim.PVLogFile ) ;
      ReadLogical( Header, 'PSREFLE=',MainFrm.PhotoStim.RefLineEnabled ) ;
-     ReadLogical( Header, 'PSCMDTERM=',MainFrm.PhotoStim.CmdTermZero ) ;     
+     ReadLogical( Header, 'PSCMDTERM=',MainFrm.PhotoStim.CmdTermZero ) ;
      for i := 1 to 3 do
      begin
        ReadFloat( Header, format('PSXC%d=',[i]), MainFrm.PhotoStim.XCenter[i] ) ;
@@ -886,12 +891,10 @@ begin
      ReadLogical( Header, 'DISPLAYGRID=', bValue) ;
      MainFrm.mnDisplayGrid.Checked := bValue ;
 
-
      // Display contrast settings optimisation
      ReadLogical( Header, 'CNCAFT=', MainFrm.ContrastChangeAllFrameTypes ) ;
      ReadLogical( Header, 'CNAUTOOP=', MainFrm.ContrastAutoOptimise ) ;
      ReadLogical( Header, 'CN6SD=', MainFrm.Contrast6SD ) ;
-
 
      // Read visibility state of channels in RecADCOnlyUnit
      // Modified by NS 19 March 2009
@@ -932,6 +935,9 @@ begin
      ReadLogical( Header, 'ARI=', MainFrm.AutoResetInterfaceCards ) ;
 
      ReadLogical( Header, 'STARTSTIMONREC=', MainFrm.StartStimOnRecord ) ;
+
+     // Read Z Stage control settings
+     ZStage.ReadSettings( Header ) ;
 
      FileClose( INIFileHandle ) ;
 

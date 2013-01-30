@@ -1,11 +1,12 @@
 unit Shared;
 { =======================================================================
-  Library of shared procedures and functions V1.0 7/1/95
+  Library of shared procedures and functions V1.0 7/1/95                                                       
   (c) J. Dempster, University of Strathclyde 1996-99. All Rights Reserved
   =======================================================================
   21/7/99 CopyStringGrid updated
   28/10/99 ... Now handles both comma and period as decimal separator
-  31/7/12 .... String replaced with ANSIString, char with ANSIchar }
+  31/7/12 .... String replaced with ANSIString, char with ANSIchar
+  29/1/13 .... ReadDouble() and AppendDouble() added }
 
 interface
 
@@ -36,10 +37,21 @@ uses
             Keyword : ANSIstring ;
             Value : Extended
             ) ;
+  procedure AppendDouble(
+            var Dest : array of ANSIChar;
+            Keyword : ANSIstring ;
+            Value : Double
+            ) ;
+
   procedure ReadFloat(
             const Source : array of ANSIChar;
             Keyword : ANSIstring ;
             var Value : Single ) ;
+  procedure ReadDouble(
+            const Source : array of ANSIChar;
+            Keyword : ANSIstring ;
+            var Value : Double ) ;
+
   procedure AppendInt(
             var Dest : array of ANSIChar;
             Keyword : ANSIstring ;
@@ -309,6 +321,24 @@ begin
      if Parameter <> '' then Value := ExtractFloat( Parameter, 1. ) ;
      end ;
 
+procedure AppendDouble( var Dest : Array of ANSIChar; Keyword : ANSIstring ; Value : Double ) ;
+{ --------------------------------------------------------
+  Append a DP floating point parameter line
+  'Keyword' = 'Value' on to end of the header text array
+  --------------------------------------------------------}
+begin
+     CopyStringToArray( Dest, Keyword ) ;
+     CopyStringToArray( Dest, format( '%.6g',[Value] ) ) ;
+     CopyStringToArray( Dest, chr(13) + chr(10) ) ;
+     end ;
+
+procedure ReadDouble( const Source : Array of ANSIChar; Keyword : ANSIstring ; var Value : Double ) ;
+var
+   Parameter : ANSIstring ;
+begin
+     FindParameter( Source, Keyword, Parameter ) ;
+     if Parameter <> '' then Value := ExtractFloat( Parameter, 1. ) ;
+     end ;
 
 
 procedure AppendInt( var Dest : Array of ANSIChar; Keyword : ANSIstring ; Value : LongInt ) ;

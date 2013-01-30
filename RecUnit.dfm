@@ -1,8 +1,8 @@
 object RecordFrm: TRecordFrm
-  Left = 399
-  Top = 2
+  Left = 1124
+  Top = 26
   Width = 819
-  Height = 945
+  Height = 969
   Caption = 'Record Images & Signals'
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -235,7 +235,7 @@ object RecordFrm: TRecordFrm
     Left = 4
     Top = 0
     Width = 213
-    Height = 913
+    Height = 937
     TabOrder = 1
     object DisplayGrp: TGroupBox
       Left = 5
@@ -721,8 +721,8 @@ object RecordFrm: TRecordFrm
       end
     end
     object MarkGrp: TGroupBox
-      Left = 4
-      Top = 769
+      Left = 5
+      Top = 873
       Width = 204
       Height = 42
       Caption = ' Markers '
@@ -1277,7 +1277,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbStimProgramChange
@@ -1445,7 +1445,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbPhotoStimProgramChange
@@ -1487,6 +1487,169 @@ object RecordFrm: TRecordFrm
             OnClick = bStopPhotoStimulusClick
           end
         end
+      end
+    end
+    object ZStageGrp: TGroupBox
+      Left = 5
+      Top = 736
+      Width = 204
+      Height = 137
+      Caption = 'Z Axis Position '
+      TabOrder = 6
+      object sbShowHideZStackSettings: TSpeedButton
+        Left = 8
+        Top = 16
+        Width = 16
+        Height = 16
+        AllowAllUp = True
+        GroupIndex = 1
+        Flat = True
+        Glyph.Data = {
+          3E010000424D3E010000000000007600000028000000280000000A0000000100
+          040000000000C800000000000000000000001000000000000000000000000000
+          8000008000000080800080000000800080008080000080808000C0C0C0000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
+          FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFF00FFFFF00FFFF00FF00FFF
+          F00FFFF0000FFFFFF0000FFFFF00FF00FFFF00FF00FFFF00FF00FFFF00FF00FF
+          FFF0000FFFFFF0000FFFF00FFFF00FF00FFFF00FFFFF00FFFFFFFF00FFFFFFFF
+          00FFFFFFFF00FFFFF00FFFF00FF00FFFF00FFFF0000FFFFFF0000FFFFF00FF00
+          FFFF00FF00FFFF00FF00FFFF00FF00FFFFF0000FFFFFF0000FFFF00FFFF00FF0
+          0FFFF00FFFFF00FFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+          FFFF}
+        NumGlyphs = 4
+        OnClick = sbShowHideZStackSettingsClick
+      end
+      object edZPosition: TValidatedEdit
+        Left = 28
+        Top = 16
+        Width = 61
+        Height = 22
+        OnKeyPress = edZPositionKeyPress
+        Text = ' 10000 um'
+        Value = 10000.000000000000000000
+        Scale = 1.000000000000000000
+        Units = 'um'
+        NumberFormat = '%.5g'
+        LoLimit = -1.000000015047466E30
+        HiLimit = 1.000000015047466E30
+      end
+      object ZStackGrp: TGroupBox
+        Left = 8
+        Top = 40
+        Width = 185
+        Height = 89
+        Caption = ' Z Stack'
+        TabOrder = 1
+        object Label21: TLabel
+          Left = 76
+          Top = 14
+          Width = 37
+          Height = 14
+          Alignment = taRightJustify
+          Caption = 'Start At'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label22: TLabel
+          Left = 67
+          Top = 38
+          Width = 46
+          Height = 14
+          Alignment = taRightJustify
+          Caption = 'Step Size'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label23: TLabel
+          Left = 66
+          Top = 62
+          Width = 47
+          Height = 14
+          Alignment = taRightJustify
+          Caption = 'No. Steps'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object edZStartPos: TValidatedEdit
+          Left = 120
+          Top = 13
+          Width = 57
+          Height = 20
+          Hint = 'Period of time to record images to file'
+          AutoSize = False
+          Text = ' 1000 um'
+          Value = 1000.000000000000000000
+          Scale = 1.000000000000000000
+          Units = 'um'
+          NumberFormat = '%.6g'
+          LoLimit = -1.000000015047466E30
+          HiLimit = 1.000000015047466E30
+        end
+        object edZStepSize: TValidatedEdit
+          Left = 120
+          Top = 37
+          Width = 57
+          Height = 20
+          Hint = 'Period of time to record images to file'
+          AutoSize = False
+          Text = ' 1000 um'
+          Value = 1000.000000000000000000
+          Scale = 1.000000000000000000
+          Units = 'um'
+          NumberFormat = '%.6g'
+          LoLimit = -1.000000015047466E30
+          HiLimit = 1.000000015047466E30
+        end
+        object edZNumSteps: TValidatedEdit
+          Left = 120
+          Top = 61
+          Width = 57
+          Height = 20
+          Hint = 'Period of time to record images to file'
+          AutoSize = False
+          Text = ' 20 '
+          Value = 20.000000000000000000
+          Scale = 1.000000000000000000
+          NumberFormat = '%.6g'
+          LoLimit = -1.000000015047466E30
+          HiLimit = 1.000000015047466E30
+        end
+        object ckZStackEnabled: TCheckBox
+          Left = 8
+          Top = 16
+          Width = 57
+          Height = 17
+          Caption = 'Enable'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+          TabOrder = 3
+          OnClick = ckZStackEnabledClick
+        end
+      end
+      object sbZPosition: TScrollBar
+        Left = 96
+        Top = 16
+        Width = 97
+        Height = 14
+        PageSize = 0
+        TabOrder = 2
+        OnChange = sbZPositionChange
       end
     end
   end

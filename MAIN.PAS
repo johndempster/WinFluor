@@ -124,6 +124,7 @@ unit Main;
 //                 No. points in zero level average now set correctly in WCP file export
 // 14.12.12 V3.4.3 Turn on when recording option added. When selected, excitation light is turned on
 //                 when recording starts and off at which it stops.
+// 28.03.12 V3.4.4 Piezo Z focus and Z stack control added (ZStageUnit.pas)
 
 interface
 
@@ -199,6 +200,7 @@ type
       PhotoStimShutterActiveHigh : Boolean ; // Modified by NS 17 September 2008
       PhotoStimShutterLatency : Single ;     // Modified by NS 23 September 2008
       PhotoStimPowerCalManual : Boolean ;    // Modified by NS 21 May 2009
+      ZStageControl : Integer ;              // Z Stage control line JD 23.1.13
       ClockSyncLine : Integer ;
       end ;
 
@@ -321,6 +323,7 @@ type
       NewCalculation : Boolean ;
       GChannelsUseGainTelegraph : Boolean ;
       end ;
+
 
   TMainFrm = class(TForm)
     MainMenu1: TMainMenu;

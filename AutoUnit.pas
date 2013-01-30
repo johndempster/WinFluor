@@ -111,7 +111,6 @@ procedure TAUTO.RecordLSM(Duration,             // Recording duration
 var
     FormExists : Boolean ;
     FrameOrLineScanInterval : Single ;
-    LineScanFlag : Boolean ;
     i : Integer ;
 begin
 

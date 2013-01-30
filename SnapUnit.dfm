@@ -1,14 +1,14 @@
 object SnapFrm: TSnapFrm
-  Left = 406
-  Top = 279
-  Width = 592
-  Height = 786
+  Left = 466
+  Top = 104
+  Width = 693
+  Height = 945
   Caption = 'Record Image'
   Color = clBtnFace
-  Font.Charset = SYMBOL_CHARSET
+  Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Wingdings'
+  Font.Name = 'Arial'
   Font.Style = []
   FormStyle = fsMDIChild
   OldCreateOrder = False
@@ -21,19 +21,19 @@ object SnapFrm: TSnapFrm
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 12
+  TextHeight = 14
   object Label9: TLabel
     Left = 336
     Top = 376
-    Width = 62
-    Height = 12
+    Width = 32
+    Height = 14
     Caption = 'Label9'
   end
   object ControlGrp: TGroupBox
     Left = 2
     Top = 0
     Width = 175
-    Height = 705
+    Height = 745
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -659,6 +659,38 @@ object SnapFrm: TSnapFrm
           TabOrder = 2
           Text = 'cbShadeCorNormalisation'
         end
+      end
+    end
+    object ZStageGrp: TGroupBox
+      Left = 8
+      Top = 688
+      Width = 161
+      Height = 49
+      Caption = 'Z Axis Position '
+      TabOrder = 5
+      object edZPosition: TValidatedEdit
+        Left = 6
+        Top = 16
+        Width = 59
+        Height = 22
+        OnKeyPress = edZPositionKeyPress
+        Text = ' 10000 um'
+        Value = 10000.000000000000000000
+        Scale = 1.000000000000000000
+        Units = 'um'
+        NumberFormat = '%.5g'
+        LoLimit = -1.000000015047466E30
+        HiLimit = 1.000000015047466E30
+      end
+      object sbZPosition: TScrollBar
+        Left = 72
+        Top = 16
+        Width = 81
+        Height = 14
+        LargeChange = 10
+        PageSize = 0
+        TabOrder = 1
+        OnChange = sbZPositionChange
       end
     end
   end

@@ -39,25 +39,17 @@ type
   TSetupFrm = class(TForm)
     bOK: TButton;
     bCancel: TButton;
+    CardGrp: TGroupBox;
+    rbNIDAQ: TRadioButton;
+    rbNIDAQMX: TRadioButton;
+    meDeviceList: TMemo;
+    bResetDevices: TButton;
+    ckAutoReset: TCheckBox;
+    TabPage: TPageControl;
+    CameraTab: TTabSheet;
     GroupBox4: TGroupBox;
+    Label41: TLabel;
     cbCamera: TComboBox;
-    ADCGrp: TGroupBox;
-    Label10: TLabel;
-    cbADCIn: TComboBox;
-    LightSourceGrp: TGroupBox;
-    cbLightSource: TComboBox;
-    GroupBox7: TGroupBox;
-    edADCInterval: TValidatedEdit;
-    Label11: TLabel;
-    LSCalGrp: TGroupBox;
-    Label12: TLabel;
-    edWavelength1: TValidatedEdit;
-    Label13: TLabel;
-    edVoltage1: TValidatedEdit;
-    edWavelength2: TValidatedEdit;
-    edVoltage2: TValidatedEdit;
-    Label14: TLabel;
-    Label15: TLabel;
     ModePanel: TPanel;
     lbCameraMode: TLabel;
     cbCameraMode: TComboBox;
@@ -67,42 +59,53 @@ type
     ReadoutSpeedPanel: TPanel;
     Label1: TLabel;
     cbReadoutSpeed: TComboBox;
-    Label5: TLabel;
-    cbClockSynchronisation: TComboBox;
-    Label18: TLabel;
-    cbADCInputMode: TComboBox;
-    CardGrp: TGroupBox;
-    rbNIDAQ: TRadioButton;
-    rbNIDAQMX: TRadioButton;
-    meDeviceList: TMemo;
-    GroupBox14: TGroupBox;
-    Label19: TLabel;
-    Label20: TLabel;
-    Label23: TLabel;
-    edLensMagnification: TValidatedEdit;
-    edPixelWidth: TValidatedEdit;
-    edCalibrationBarSize: TValidatedEdit;
-    GroupBox9: TGroupBox;
-    cbCameraStart: TComboBox;
-    rbCameraStartActiveHigh: TRadioButton;
-    rbCameraStartActiveLow: TRadioButton;
+    edTemperatureSetPoint: TValidatedEdit;
+    ADCPanel: TPanel;
+    Label48: TLabel;
+    cbCameraADC: TComboBox;
+    AuxCameraPanel: TPanel;
+    Label37: TLabel;
+    cbAuxCamera: TComboBox;
+    LightSourceTab: TTabSheet;
+    LightSourceGrp: TGroupBox;
+    cbLightSource: TComboBox;
+    LSCalGrp: TGroupBox;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
+    edWavelength1: TValidatedEdit;
+    edVoltage1: TValidatedEdit;
+    edWavelength2: TValidatedEdit;
+    edVoltage2: TValidatedEdit;
     LSWaveGrp: TGroupBox;
-    cbLSWavelengthStart: TComboBox;
-    cbLSWavelengthEnd: TComboBox;
     Label2: TLabel;
     Label21: TLabel;
-    GroupBox1: TGroupBox;
-    GroupBox6: TGroupBox;
-    Label4: TLabel;
-    Label6: TLabel;
-    cbDigitalStimStart: TComboBox;
-    cbDigitalStimEnd: TComboBox;
-    GroupBox11: TGroupBox;
-    cbVCommand0: TComboBox;
-    cbVCommand1: TComboBox;
-    Label3: TLabel;
-    Label17: TLabel;
+    cbLSWavelengthStart: TComboBox;
+    cbLSWavelengthEnd: TComboBox;
+    LSLEDGrp: TGroupBox;
+    Label35: TLabel;
+    Label36: TLabel;
+    edLEDOffVoltage: TValidatedEdit;
+    edLEDMaxVoltage: TValidatedEdit;
+    lsTIRFGrp: TGroupBox;
+    GroupBox5: TGroupBox;
+    Label49: TLabel;
+    Label50: TLabel;
+    Label57: TLabel;
+    edTIRFOff1: TValidatedEdit;
+    edTIRFOn1: TValidatedEdit;
+    edTIRFWF1: TValidatedEdit;
+    GroupBox8: TGroupBox;
+    Label58: TLabel;
+    Label59: TLabel;
+    Label60: TLabel;
+    edTIRFOff2: TValidatedEdit;
+    edTIRFOn2: TValidatedEdit;
+    edTIRFWF2: TValidatedEdit;
     LSLaserGrp: TGroupBox;
+    Label38: TLabel;
+    Label39: TLabel;
     LSLaserPage: TPageControl;
     Laser1Tab: TTabSheet;
     Label7: TLabel;
@@ -140,42 +143,52 @@ type
     edLaser3OffVoltage: TValidatedEdit;
     edLaser3OnVoltage: TValidatedEdit;
     edLaser3Delay: TValidatedEdit;
-    LSLEDGrp: TGroupBox;
-    Label35: TLabel;
-    Label36: TLabel;
-    edLEDOffVoltage: TValidatedEdit;
-    edLEDMaxVoltage: TValidatedEdit;
-    AuxCameraPanel: TPanel;
-    Label37: TLabel;
-    cbAuxCamera: TComboBox;
-    edTemperatureSetPoint: TValidatedEdit;
-    Label41: TLabel;
-    Label16: TLabel;
-    edCameraTriggerOffset: TValidatedEdit;
-    Label42: TLabel;
-    edCameraReadoutTime: TValidatedEdit;
-    PhotoStimGrp: TGroupBox;
-    PhotoStimPage: TPageControl;
-    GalvosTab: TTabSheet;
-    Label55: TLabel;
-    Label56: TLabel;
-    cbPhotoStimX: TComboBox;
-    cbPhotoStimY: TComboBox;
-    AttenuatorsTab: TTabSheet;
-    Label51: TLabel;
-    cbPhotoStimIntensity1: TComboBox;
-    ShutterTab: TTabSheet;
-    Label52: TLabel;
-    Label53: TLabel;
-    Label54: TLabel;
-    cbPhotoStimShutter: TComboBox;
-    edPhotoStimShutterLatency: TValidatedEdit;
-    rbPhotoStimShutterActiveHigh: TRadioButton;
-    rbPhotoStimShutterActiveLow: TRadioButton;
     cbLSLaserStart: TComboBox;
     cbLSLaserEnd: TComboBox;
-    Label38: TLabel;
-    Label39: TLabel;
+    TabSheet1: TTabSheet;
+    AnalogInputTab: TTabSheet;
+    ADCGrp: TGroupBox;
+    Label10: TLabel;
+    Label18: TLabel;
+    cbADCIn: TComboBox;
+    cbADCInputMode: TComboBox;
+    ZStageTab: TTabSheet;
+    GroupBox14: TGroupBox;
+    Label19: TLabel;
+    Label20: TLabel;
+    Label23: TLabel;
+    Label61: TLabel;
+    edLensMagnification: TValidatedEdit;
+    edPixelWidth: TValidatedEdit;
+    edCalibrationBarSize: TValidatedEdit;
+    edCalibrationBarThickness: TValidatedEdit;
+    GroupBox7: TGroupBox;
+    Label11: TLabel;
+    Label5: TLabel;
+    edADCInterval: TValidatedEdit;
+    cbClockSynchronisation: TComboBox;
+    GroupBox13: TGroupBox;
+    cbZStageControl: TComboBox;
+    Label62: TLabel;
+    GroupBox15: TGroupBox;
+    Label63: TLabel;
+    Label64: TLabel;
+    Label65: TLabel;
+    Label66: TLabel;
+    edZStagePos1: TValidatedEdit;
+    edZStageV1: TValidatedEdit;
+    edZstagePos2: TValidatedEdit;
+    edZStageV2: TValidatedEdit;
+    GroupBox9: TGroupBox;
+    Label16: TLabel;
+    Label42: TLabel;
+    cbCameraStart: TComboBox;
+    rbCameraStartActiveHigh: TRadioButton;
+    rbCameraStartActiveLow: TRadioButton;
+    edCameraTriggerOffset: TValidatedEdit;
+    edCameraReadoutTime: TValidatedEdit;
+    ckCCDClearPreExposure: TCheckBox;
+    ckPostExposureReadout: TCheckBox;
     LSShutterGrp: TGroupBox;
     Label43: TLabel;
     Label40: TLabel;
@@ -185,39 +198,52 @@ type
     cbLSShutter: TComboBox;
     rbLSShutterActiveHigh: TRadioButton;
     rbLSShutterActiveLow: TRadioButton;
+    GroupBox11: TGroupBox;
+    Label3: TLabel;
+    Label17: TLabel;
+    Label47: TLabel;
+    cbVCommand0: TComboBox;
+    cbVCommand1: TComboBox;
+    cbVCommand2: TComboBox;
+    GroupBox6: TGroupBox;
+    Label4: TLabel;
+    Label6: TLabel;
+    cbDigitalStimStart: TComboBox;
+    cbDigitalStimEnd: TComboBox;
+    PhotoStimGrp: TGroupBox;
+    PhotoStimPage: TPageControl;
+    GalvosTab: TTabSheet;
+    Label55: TLabel;
+    Label56: TLabel;
+    cbPhotoStimX: TComboBox;
+    cbPhotoStimY: TComboBox;
+    AttenuatorsTab: TTabSheet;
+    Label51: TLabel;
+    Label45: TLabel;
+    Label46: TLabel;
+    cbPhotoStimIntensity1: TComboBox;
+    cbPhotoStimIntensity2: TComboBox;
+    cbPhotoStimIntensity3: TComboBox;
+    ShutterTab: TTabSheet;
+    Label52: TLabel;
+    Label53: TLabel;
+    Label54: TLabel;
+    cbPhotoStimShutter: TComboBox;
+    edPhotoStimShutterLatency: TValidatedEdit;
+    rbPhotoStimShutterActiveHigh: TRadioButton;
+    rbPhotoStimShutterActiveLow: TRadioButton;
     MeterTab: TTabSheet;
     Label44: TLabel;
     cbPhotoStimMeterInput: TComboBox;
-    bResetDevices: TButton;
-    cbPhotoStimIntensity2: TComboBox;
-    cbPhotoStimIntensity3: TComboBox;
-    Label45: TLabel;
-    Label46: TLabel;
-    cbVCommand2: TComboBox;
-    Label47: TLabel;
-    ckAutoReset: TCheckBox;
-    ckCCDClearPreExposure: TCheckBox;
-    ADCPanel: TPanel;
-    Label48: TLabel;
-    cbCameraADC: TComboBox;
-    lsTIRFGrp: TGroupBox;
-    GroupBox5: TGroupBox;
-    Label49: TLabel;
-    Label50: TLabel;
-    Label57: TLabel;
-    edTIRFOff1: TValidatedEdit;
-    edTIRFOn1: TValidatedEdit;
-    edTIRFWF1: TValidatedEdit;
-    GroupBox8: TGroupBox;
-    Label58: TLabel;
-    Label59: TLabel;
-    Label60: TLabel;
-    edTIRFOff2: TValidatedEdit;
-    edTIRFOn2: TValidatedEdit;
-    edTIRFWF2: TValidatedEdit;
-    ckPostExposureReadout: TCheckBox;
-    Label61: TLabel;
-    edCalibrationBarThickness: TValidatedEdit;
+    GroupBox1: TGroupBox;
+    Label69: TLabel;
+    Label70: TLabel;
+    edZStageVMin: TValidatedEdit;
+    edZStageVMax: TValidatedEdit;
+    GroupBox16: TGroupBox;
+    Label67: TLabel;
+    edZStageMinStepSize: TValidatedEdit;
+    ckZStageEnabled: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure bOKClick(Sender: TObject);
@@ -246,7 +272,7 @@ var
 implementation
 
 uses Main, shared, LabIOUnit, TimeCourseUnit, AmpModule , LightSourceUnit,
-  RecUnit, SnapUnit, RecADCOnlyUnit, Sealtest, LogUnit;
+  RecUnit, SnapUnit, RecADCOnlyUnit, Sealtest, LogUnit, ZStageUnit;
 
 
 {$R *.DFM}
@@ -360,8 +386,18 @@ begin
 
      edTemperatureSetPoint.Value := MainFrm.Cam1.CameraTemperatureSetPoint ;
 
-     ClientWidth := ADCGrp.Left + ADCGrp.Width + 5 ;
-     ClientHeight := CardGrp.Top + CardGrp.Height + 5 ;
+     // Z Stage
+     ckZStageEnabled.Checked := ZStage.Available ;
+     edZStagePos1.Value := ZStage.CalPosition1 ;
+     edZStagePos2.Value := ZStage.CalPosition2 ;
+     edZStageV1.Value := ZStage.CalVoltage1 ;
+     edZStageV2.Value := ZStage.CalVoltage2 ;
+     edZStageVMin.Value := ZStage.VMin ;
+     edZStageVMax.Value := ZStage.VMax ;
+     edZStageMinStepSize.Value := ZStage.MinStepSize ;
+
+     ClientWidth := TabPage.Left + TabPage.Width + 5 ;
+     ClientHeight := bOk.Top + bOk.Height + 5 ;
 
      // Auto reset interface cards
      ckAutoReset.Checked := MainFrm.AutoResetInterfaceCards ;
@@ -622,6 +658,20 @@ begin
      cbClockSynchronisation.Items.AddObject('RTSI 0',TObject(0)) ;
      cbClockSynchronisation.Items.AddObject('PFI 5',TObject(1)) ;
      cbClockSynchronisation.ItemIndex :=  Max( 0,MainFrm.IOConfig.ClockSyncLine ) ;
+
+     // Z stage control
+
+     cbZStageControl.Clear ;
+     for i := 0 to LabIO.NumResources-1 do
+         if LabIO.Resource[i].ResourceType = DACOut then begin
+         s := format('Device %d: DAC%d',
+              [LabIO.Resource[i].Device,
+               LabIO.Resource[i].StartChannel]) ;
+         cbZStageControl.Items.AddObject(s,TObject(i))
+         end ;
+    cbZStageControl.ItemIndex := Max( 0,
+        cbZStageControl.Items.IndexOfObject(TObject(MainFrm.IOConfig.ZStageControl))) ;
+
 
      end ;
 
@@ -889,6 +939,20 @@ begin
     MainFrm.Cam1.CameraTemperatureSetPoint := edTemperatureSetPoint.Value ;
 
     MainFrm.Cam1.AdditionalReadoutTime := edCameraReadoutTime.Value ;
+
+     // Z Stage
+     ZStage.Available := ckZStageEnabled.Checked ;
+     ZStage.CalPosition1 := edZStagePos1.Value ;
+     ZStage.CalPosition2 := edZStagePos2.Value ;
+     ZStage.CalVoltage1 := edZStageV1.Value ;
+     ZStage.CalVoltage2 := edZStageV2.Value ;
+     ZStage.VMin := edZStageVMin.Value ;
+     ZStage.VMax := edZStageVMax.Value ;
+     ZStage.MinStepSize := edZStageMinStepSize.Value ;
+
+     MainFrm.IOConfig.ZStageControl :=
+                         Integer(cbZStageControl.Items.Objects[cbZStageControl.ItemIndex]) ;
+
 
     // Update relevant forms if they are active
     if MainFrm.FormExists('TimeCourseFrm') then TimeCourseFrm.UpdateSettings ;

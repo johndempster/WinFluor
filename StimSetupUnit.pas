@@ -403,8 +403,6 @@ procedure TStimSetupFrm.bOKClick(Sender: TObject);
 // --------------------------------------------
 // User has pressed the OK button to close form
 // --------------------------------------------
-var
-    i : Integer ;
 begin
 
      // Save changes
