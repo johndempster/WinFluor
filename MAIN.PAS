@@ -119,6 +119,9 @@ unit Main;
 // 17.09.12 V3.4.0 JD UpdateLUT: LUT buffer now completely filled (not just up to GreyMax)
 //                 because Ixon cameras grey levels exceed stated maximum.
 // 21.11.12 V3.4.1 JD UltimaUnit modified to work with Prairie View V4.3
+// 15.11.12        DE Added LastRecADCOnly* variables to allow Record Signals
+//                 window to remember its size and location after being
+//                 dismissed (requested by M. Day)
 // 30.11.12 V3.4.2 Time Lapse + Burst recording mode added (recunit.pas)
 //                 T90 and T(decay) and frequency plots now calculated correctly in event detection & analysis
 //                 No. points in zero level average now set correctly in WCP file export
@@ -621,6 +624,11 @@ type
 
     StartStimOnRecord : Boolean ;
 
+    LastRecADCOnlyWidth : Integer;
+    LastRecADCOnlyHeight : Integer;
+    LastRecADCOnlyTop : Integer;
+    LastRecADCOnlyLeft : Integer;
+
     procedure SetPalette( BitMap : TBitMap ; PaletteType : TPaletteType ) ;
 
     procedure UpdateLUT( iFrameType : Integer ;
@@ -1074,6 +1082,11 @@ begin
           end ;
        end ;
 
+    LastRecADCOnlyWidth := -1;
+    LastRecADCOnlyHeight := -1;
+    LastRecADCOnlyTop := -1;
+    LastRecADCOnlyLeft := -1;
+
     end;
 
 
@@ -1258,10 +1271,19 @@ begin
          else begin
             RecADCOnlyFrm := TRecADCOnlyFrm.Create(Self) ;
             RecADCOnlyFrm.DisplayGrid := mnDisplayGrid.Checked ;
-            RecADCOnlyFrm.Left := 20 ;
-            RecADCOnlyFrm.Top := 20 ;
-            end ;
-         end
+            if LastRecADCOnlyWidth = -1 then
+            begin
+              RecADCOnlyFrm.Left := 20 ;
+              RecADCOnlyFrm.Top := 20 ;
+            end else
+            begin
+              RecADCOnlyFrm.Width := LastRecADCOnlyWidth;
+              RecADCOnlyFrm.Height := LastRecADCOnlyHeight;
+              RecADCOnlyFrm.Top := LastRecADCOnlyTop;
+              RecADCOnlyFrm.Left := LastRecADCOnlyLeft;
+            end
+          end ;
+        end
      else begin
          // Image & analogue recording module
          if FormExists('RecordFrm') then begin
