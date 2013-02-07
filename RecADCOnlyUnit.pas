@@ -397,6 +397,9 @@ begin
      ckDynamicProtocolEnabled.Checked := MainFrm.DynamicProtocol.Enabled ;
      ckPlaybackEnabled.Checked := MainFrm.Playback.Enabled ;
 
+     // Make AD recording the default mode
+     ckRecordADCSignalsOnly.Checked := True;
+
      // Delay between start of A/D sampling and image acquisition
      edImageStartDelay.Value := 0.0 ;
 
@@ -1978,6 +1981,14 @@ begin
        MainFrm.Caption := 'WinFluor : ' + MainFrm.IDRFile.FileName;
        MainFrm.UpdateRecentFilesList;
      end;
+
+     // Reload stimuli programs so someone can define a new one
+     // without closing + reopening Record Signals window
+     // Load list of stimulus programs
+     UpdateStimProgramList ;
+
+     // Load list of photo-stimulus programs
+     UpdatePhotoStimProgramList ;
 
      if not LabIO.ADCActive[ADCDevice] then begin
         NewDisplaySetup ;
