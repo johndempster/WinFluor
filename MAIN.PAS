@@ -643,6 +643,8 @@ type
 
     RecordADCSignalsOnly: Boolean;
 
+    OverLayTraces: Boolean;
+
     procedure SetPalette( BitMap : TBitMap ; PaletteType : TPaletteType ) ;
 
     procedure UpdateLUT( iFrameType : Integer ;
@@ -1102,6 +1104,8 @@ begin
     LastRecADCOnlyLeft := -1;
 
     RecordADCSignalsOnly := False;
+
+    OverLayTraces := False;
 
     end;
 
