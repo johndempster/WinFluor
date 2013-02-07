@@ -226,6 +226,10 @@ object MainFrm: TMainFrm
         Caption = 'Device Control Outputs (Direct Control)'
         OnClick = mnDirectControlClick
       end
+      object mnPowerCalibration: TMenuItem
+        Caption = 'Power Calibration'
+        OnClick = mnPowerCalibrationClick
+      end
       object N2: TMenuItem
         Caption = '-'
       end
