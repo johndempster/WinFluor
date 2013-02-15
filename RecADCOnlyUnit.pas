@@ -152,6 +152,7 @@ type
     procedure ckPlaybackEnabledClick(Sender: TObject);
     procedure bPlaybackSetupClick(Sender: TObject);
     procedure cbPhotoStimProgramChange(Sender: TObject);
+    procedure ckRecordADCSignalsOnlyClick(Sender: TObject);
   private
     { Private declarations }
     ADCDevice : SmallInt ;                    // Device # of A/D Converter
@@ -397,8 +398,8 @@ begin
      ckDynamicProtocolEnabled.Checked := MainFrm.DynamicProtocol.Enabled ;
      ckPlaybackEnabled.Checked := MainFrm.Playback.Enabled ;
 
-     // Make AD recording the default mode
-     ckRecordADCSignalsOnly.Checked := True;
+     // Make AD recording choice persistent
+     ckRecordADCSignalsOnly.Checked := MainFrm.RecordADCSignalsOnly;
 
      // Delay between start of A/D sampling and image acquisition
      edImageStartDelay.Value := 0.0 ;
@@ -2856,5 +2857,9 @@ begin
 
 
 
+procedure TRecADCOnlyFrm.ckRecordADCSignalsOnlyClick(Sender: TObject);
+begin
+  MainFrm.RecordADCSignalsOnly := ckRecordADCSignalsOnly.Checked;
+end;
 
 end.
