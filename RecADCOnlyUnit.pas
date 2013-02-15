@@ -1374,7 +1374,8 @@ begin
 
   // Use PhotoStimulator at this point...
   PhotoStimulator.CreateWaveform(DACBufs,
-                                 DACX, DACY, DACI, DACS,
+                                 DACX, DACY, // DACI,
+                                 DACS,
                                  DACScale,
                                  DACNumScansInBuffer,
                                  Device,

@@ -128,6 +128,8 @@ unit Main;
 // 14.12.12 V3.4.3 Turn on when recording option added. When selected, excitation light is turned on
 //                 when recording starts and off at which it stops.
 // 28.1.13 V3.4.4 Piezo Z focus and Z stack control added (ZStageUnit.pas)
+// 20.02.13        PhotoStim.MultipleAttenuators flag indicates whether
+//                 photostimulus protocol addresses multiple attenuators
 // 03.04.13 V3.4.5 Imaging area selection rectangle now made more visible by small squares at corners and middle.
 // 24.04.13 V3.4.6 LabIOUnit.pas Bug fix in NIDAQMX_MemoryToDAC() fixing access violations in RecADCOnlyUnit.pas
 //                 when A/D restarted.
@@ -232,6 +234,8 @@ type
       RepeatedStim : Boolean ;            // Repeat stimulus flag
       Period : Single ;                   // Repeat stimulus period
       Attenuator : Integer ;              // Seleteced attenuator/galvo pair
+      MultipleAttenuators: Boolean;       // Protocol addresses multiple
+                                          // attenuators
       NumStimPoints : Integer ;           // Num targets in current protocol
       // Modified/used by PhotoStimUnit for protocol setup
       XMicronsPerPixel : Single ;         // X um per pixel in reference image
@@ -822,6 +826,7 @@ begin
     PhotoStim.CmdTermZero := False;
     PhotoStim.Period := 1.0 ;
     PhotoStim.Attenuator := 0 ;
+    PhotoStim.MultipleAttenuators := False;
     PhotoStim.RepeatedStim := False ;
     PhotoStim.NumStimPoints := 0 ;
     for i := 1 to 3 do

@@ -23,7 +23,7 @@ object PhotoStimFrm: TPhotoStimFrm
     Left = 2
     Top = 0
     Width = 357
-    Height = 529
+    Height = 547
     TabOrder = 0
     object DisplayGrp: TGroupBox
       Left = 6
@@ -145,7 +145,7 @@ object PhotoStimFrm: TPhotoStimFrm
     end
     object CalGrp: TGroupBox
       Left = 6
-      Top = 481
+      Top = 499
       Width = 343
       Height = 42
       TabOrder = 1
@@ -169,25 +169,12 @@ object PhotoStimFrm: TPhotoStimFrm
       Left = 6
       Top = 106
       Width = 343
-      Height = 375
+      Height = 393
       Caption = 'Stimulus Protocol'
       TabOrder = 2
-      object lblAttenuator: TLabel
-        Left = 31
-        Top = 85
-        Width = 59
-        Height = 14
-        Caption = 'Attenuator'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Arial'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
       object lblRepeatPeriod: TLabel
         Left = 24
-        Top = 350
+        Top = 368
         Width = 77
         Height = 14
         Caption = 'Repeat Period'
@@ -206,21 +193,21 @@ object PhotoStimFrm: TPhotoStimFrm
       end
       object lblTotalDuration: TLabel
         Left = 10
-        Top = 301
+        Top = 319
         Width = 134
         Height = 13
         Caption = 'Total Protocol Duration (ms):'
       end
       object lblDuration: TLabel
         Left = 148
-        Top = 301
+        Top = 319
         Width = 6
         Height = 13
         Caption = '0'
       end
       object Shape2: TShape
         Left = 8
-        Top = 320
+        Top = 338
         Width = 325
         Height = 1
       end
@@ -243,11 +230,11 @@ object PhotoStimFrm: TPhotoStimFrm
         Left = 8
         Top = 144
         Width = 328
-        Height = 155
+        Height = 173
         ColCount = 100
         DefaultColWidth = 48
         DefaultRowHeight = 18
-        RowCount = 7
+        RowCount = 8
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -257,23 +244,15 @@ object PhotoStimFrm: TPhotoStimFrm
         ParentFont = False
         ScrollBars = ssHorizontal
         TabOrder = 1
+        OnExit = sgTargetsOnExit
         OnKeyPress = sgTargetsKeyPress
         OnMouseDown = sgTargetsMouseDown
         OnSelectCell = sgTargetsSelectCell
-      end
-      object cbAttenuator: TComboBox
-        Left = 94
-        Top = 85
-        Width = 65
-        Height = 21
-        ItemHeight = 13
-        TabOrder = 2
-        Text = 'cbAttenuator'
-        OnChange = cbAttenuatorChange
+        OnSetEditText = sgTargetsSetEditText
       end
       object ckPhotoStimRepeat: TCheckBox
         Left = 8
-        Top = 327
+        Top = 345
         Width = 169
         Height = 17
         Caption = 'Repeat Stimulus'
@@ -283,12 +262,12 @@ object PhotoStimFrm: TPhotoStimFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        TabOrder = 3
+        TabOrder = 2
         OnClick = ckPhotoStimRepeatClick
       end
       object edPhotoStimPeriod: TValidatedEdit
         Left = 109
-        Top = 347
+        Top = 365
         Width = 68
         Height = 20
         OnKeyPress = edPhotoStimPeriodKeyPress
@@ -313,7 +292,7 @@ object PhotoStimFrm: TPhotoStimFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 4
         OnClick = bOpenProtocolClick
       end
       object bSaveProtocolAs: TButton
@@ -328,7 +307,7 @@ object PhotoStimFrm: TPhotoStimFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 5
         OnClick = bSaveProtocolAsClick
       end
       object bSaveProtocol: TButton
@@ -343,7 +322,7 @@ object PhotoStimFrm: TPhotoStimFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        TabOrder = 7
+        TabOrder = 6
         OnClick = bSaveProtocolClick
       end
       object bDuplicate: TButton
@@ -358,16 +337,34 @@ object PhotoStimFrm: TPhotoStimFrm
         Font.Name = 'Arial'
         Font.Style = [fsBold]
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 7
         OnClick = bDuplicateClick
+      end
+      object rbSingleAttenuator: TRadioButton
+        Left = 40
+        Top = 90
+        Width = 113
+        Height = 17
+        Caption = 'Single Attenuator'
+        TabOrder = 8
+        OnClick = rbAttenuatorsClick
+      end
+      object rbMultipleAttenuators: TRadioButton
+        Left = 40
+        Top = 113
+        Width = 113
+        Height = 17
+        Caption = 'Multiple Attenuators'
+        TabOrder = 9
+        OnClick = rbAttenuatorsClick
       end
     end
   end
   object ImageGrp: TGroupBox
     Left = 364
-    Top = 0
+    Top = 8
     Width = 507
-    Height = 529
+    Height = 547
     TabOrder = 1
     object Image: TImage
       Left = 8
@@ -381,7 +378,7 @@ object PhotoStimFrm: TPhotoStimFrm
     end
     object pnlControls: TPanel
       Left = 8
-      Top = 464
+      Top = 482
       Width = 185
       Height = 56
       BevelOuter = bvNone

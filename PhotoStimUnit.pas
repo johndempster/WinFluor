@@ -36,7 +36,6 @@ type
     bSaveProtocol: TButton;
     bSaveProtocolAs: TButton;
     bPowerCalibrate: TButton;
-    cbAttenuator: TComboBox;
     cbChannel: TComboBox;
     cbDisplayZoom: TComboBox;
     ckCalibrationBar: TCheckBox;
@@ -45,7 +44,6 @@ type
     ckReferenceLine: TCheckBox;
     edDisplayIntensityRange: TRangeEdit;
     edPhotoStimPeriod: TValidatedEdit;
-    lblAttenuator: TLabel;
     lblChannel: TLabel;
     lblCursorPosition: TLabel;
     lblDuration: TLabel;
@@ -60,9 +58,12 @@ type
     sgTargets: TStringGrid;
     Shape1: TShape;
     Shape2: TShape;
+    rbSingleAttenuator: TRadioButton;
+    rbMultipleAttenuators: TRadioButton;
 
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);    
+    procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ImageDblClick(Sender: TObject);
     procedure ImageMouseDown(Sender: TObject;
@@ -85,7 +86,7 @@ type
     procedure bSaveImageClick(Sender: TObject);
     procedure bSaveProtocolAsClick(Sender: TObject);
     procedure bSaveProtocolClick(Sender: TObject);
-    procedure cbAttenuatorChange(Sender: TObject);
+    // procedure cbAttenuatorChange(Sender: TObject);
     procedure ckCalibrationBarClick(Sender: TObject);
     procedure cbChannelChange(Sender: TObject);
     procedure cbDisplayZoomChange(Sender: TObject);
@@ -100,10 +101,16 @@ type
                                  Shift: TShiftState; X, Y: Integer);
     procedure sgTargetsSelectCell(Sender: TObject; ACol, ARow: Integer;
                                   var CanSelect: Boolean);
+    procedure sgTargetsOnExit(Sender: TObject);
+    procedure sgTargetsSetEditText(Sender: TObject;
+                                   ACol, ARow: Integer;
+                                   EditStr: String);
+    procedure rbAttenuatorsClick(Sender: TObject);
 
   private
 
     // Local copy of protocol
+    m_Attenuator: Array [0..MaxStimPoints-1] of Integer; // Attenuator to use
     m_X : Array[0..MaxStimPoints-1] of Single ;     // X location in um
     m_Y : Array[0..MaxStimPoints-1] of Single ;     // Y location in um
     m_A : Array[0..MaxStimPoints-1] of Single ;     // Amplitude in mW
@@ -128,6 +135,8 @@ type
     p_OrigFrame : Array[0..4] of Pointer;  // Image frames from acquisition
     m_TargetsColRClk : Integer;            // Targets grid right click column
     m_TargetsRowRClk : Integer;            // Targets grid right click row    
+    m_TargetsSelectedCol: Integer;         // Column of selected cell
+    m_TargetsSelectedRow: Integer;         // Row of selected cell
 
     function CalculateDuration : Single;
     procedure CameraSnap();
@@ -185,6 +194,8 @@ procedure TPhotoStimFrm.FormShow(Sender: TObject);
 // --------------------------------------
 var
   i : Integer;
+  AttenuatorLabel: String;
+  FoundFirstAttenuator: Boolean;
 begin
 
   // Not yet initialized
@@ -216,7 +227,7 @@ begin
   end;
 
   // Load configured attenuator channels
-  cbAttenuator.Clear ;
+  {cbAttenuator.Clear ;
   if MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI1) then
   begin
     cbAttenuator.Items.AddObject( ' 1 ', Tobject(1));
@@ -230,8 +241,29 @@ begin
     cbAttenuator.Items.AddObject( ' 3 ', Tobject(3));
   end;
   cbAttenuator.ItemIndex := Max(0,
-    cbAttenuator.Items.IndexOfObject(TObject(MainFrm.PhotoStim.Attenuator)));
-
+    cbAttenuator.Items.IndexOfObject(TObject(MainFrm.PhotoStim.Attenuator)));}
+  FoundFirstAttenuator := False;
+  AttenuatorLabel := 'Attenuator (';
+  if MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI1) then
+  begin
+    FoundFirstAttenuator := True;
+    AttenuatorLabel := AttenuatorLabel + '1';
+  end;
+  if MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI2) then
+  begin
+    if FoundFirstAttenuator then
+      AttenuatorLabel := AttenuatorLabel + ',';
+    FoundFirstAttenuator := True;
+    AttenuatorLabel := AttenuatorLabel + '2';
+  end;
+  if MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI3) then
+  begin
+    if FoundFirstAttenuator then
+      AttenuatorLabel := AttenuatorLabel + ',';
+    FoundFirstAttenuator := True;
+    AttenuatorLabel := AttenuatorLabel + '3';
+  end;
+  AttenuatorLabel := AttenuatorLabel + ')';
 
   // Load settings (must be done first)
   edPhotoStimPeriod.Value := MainFrm.PhotoStim.Period;
@@ -269,14 +301,20 @@ begin
 
   // Set target table headers
   sgTargets.Cells[0,0] := 'No.';
-  sgTargets.Cells[0,1] := 'Pre (ms)';
-  sgTargets.Cells[0,2] := 'Duration (ms)';
-  sgTargets.Cells[0,3] := 'Post (ms)';
-  sgTargets.Cells[0,4] := 'Amp (mW)';
-  sgTargets.Cells[0,5] := 'X (um)';
-  sgTargets.Cells[0,6] := 'Y (um)';
-  sgTargets.Colwidths[0] := sgTargets.Canvas.TextWidth('XXXXXXXXXX');
+  sgTargets.Cells[0,1] := AttenuatorLabel;
+  sgTargets.Cells[0,2] := 'Pre (ms)';
+  sgTargets.Cells[0,3] := 'Duration (ms)';
+  sgTargets.Cells[0,4] := 'Post (ms)';
+  sgTargets.Cells[0,5] := 'Amp (mW)';
+  sgTargets.Cells[0,6] := 'X (um)';
+  sgTargets.Cells[0,7] := 'Y (um)';
+  // sgTargets.Colwidths[0] := sgTargets.Canvas.TextWidth('XXXXXXXXXX');
+  sgTargets.Colwidths[0] := sgTargets.Canvas.TextWidth(AttenuatorLabel + 'X');
 
+  if MainFrm.PhotoStim.MultipleAttenuators then
+    rbMultipleAttenuators.Checked := True
+  else
+    rbSingleAttenuator.Checked := True;
 
   // Load the protocol in current use (if any)
   if (MainFrm.PhotoStimFileName <> '') and
@@ -315,6 +353,18 @@ begin
 
   UpdateDisplay();
 
+end;
+
+
+// -----------------------------------------------------------------------------
+
+
+procedure TPhotoStimFrm.FormActivate(Sender: TObject);
+begin
+  if MainFrm.PhotoStim.MultipleAttenuators then
+    rbMultipleAttenuators.Checked := True
+  else
+    rbSingleAttenuator.Checked := True;
 end;
 
 
@@ -392,6 +442,7 @@ begin
   // First point, then set values to zero
   if (MainFrm.PhotoStim.NumStimPoints = 0) then
   begin
+    m_Attenuator[MainFrm.PhotoStim.NumStimPoints] := MainFrm.PhotoStim.Attenuator;
     m_PRE[MainFrm.PhotoStim.NumStimPoints] := 0.0;
     m_POST[MainFrm.PhotoStim.NumStimPoints] := 0.0;
     m_D[MainFrm.PhotoStim.NumStimPoints] := 0.0;
@@ -402,6 +453,8 @@ begin
   // Not first point, then set values to previous point's values
   else if (MainFrm.PhotoStim.NumStimPoints > 0) then
   begin
+    m_Attenuator[MainFrm.PhotoStim.NumStimPoints] :=
+      m_Attenuator[MainFrm.PhotoStim.NumStimPoints - 1];
     m_PRE[MainFrm.PhotoStim.NumStimPoints] :=
       m_PRE[MainFrm.PhotoStim.NumStimPoints - 1];
     m_POST[MainFrm.PhotoStim.NumStimPoints] :=
@@ -685,6 +738,7 @@ begin
   // Reset protocol values
   for i := 0 to MainFrm.PhotoStim.NumStimPoints - 1 do
   begin
+    m_Attenuator[i] := 0;
     m_X[i] := 0.0;
     m_Y[i] := 0.0;
     m_PRE[i] := 0.0;
@@ -766,6 +820,7 @@ begin
   num := StrToInt(pointVal);
   for i := 0 to num do
   begin
+    m_Attenuator[MainFrm.PhotoStim.NumStimPoints] := m_Attenuator[i];
     m_X[MainFrm.PhotoStim.NumStimPoints] := m_X[i];
     m_Y[MainFrm.PhotoStim.NumStimPoints] := m_Y[i];
     if i = 0 then
@@ -1100,7 +1155,7 @@ end;
 // -----------------------------------------------------------------------------
 
 
-procedure TPhotoStimFrm.cbAttenuatorChange(Sender: TObject);
+{procedure TPhotoStimFrm.cbAttenuatorChange(Sender: TObject);
 begin
 
   // Validate protocol
@@ -1109,7 +1164,7 @@ begin
   // Update display
   UpdateDisplay();
 
-end;
+end;}
 
 
 // -----------------------------------------------------------------------------
@@ -1263,6 +1318,7 @@ begin
   begin
     if i = MainFrm.PhotoStim.NumStimPoints - 1 then
     begin
+      m_Attenuator[i] := 0;
       m_PRE[i] := 0;
       m_POST[i] := 0;
       m_D[i] := 0;
@@ -1272,6 +1328,7 @@ begin
     end
     else
     begin
+      m_Attenuator[i] := m_Attenuator[i+1];
       m_PRE[i] := m_PRE[i + 1];
       m_POST[i] := m_POST[i + 1];
       m_D[i] := m_D[i + 1];
@@ -1328,14 +1385,77 @@ end;
 // -----------------------------------------------------------------------------
 
 
+procedure TPhotoStimFrm.sgTargetsOnExit(Sender: TObject);
+var
+  cur: String;
+  c: Integer;
+begin
+  if not MainFrm.PhotoStim.MultipleAttenuators then
+  begin
+    if m_TargetsSelectedRow = 1 then
+    begin
+      cur := sgTargets.Cells[m_TargetsSelectedCol, 1];
+      for c := 1 to MainFrm.PhotoStim.NumStimPoints do
+      begin
+        sgTargets.Cells[c, 1] := cur;
+      end;
+      ValidateStimulusProtocol();
+    end;
+  end;
+end;
+
+
+// -----------------------------------------------------------------------------
+
+
+procedure TPhotoStimFrm.sgTargetsSetEditText(Sender: TObject;
+                                             ACol, ARow: Integer;
+                                             EditStr: String);
+var
+  c: Integer;
+begin
+  if ((not MainFrm.PhotoStim.MultipleAttenuators) and
+      (ARow = 1)) then
+  begin
+    if ACol > 1 then
+      for c := 1 to ACol-1 do
+      begin
+        sgTargets.Cells[c, 1] := EditStr;
+      end;
+    if ACol < MainFrm.PhotoStim.NumStimPoints then
+      for c := ACol+1 to MainFrm.PhotoStim.NumStimPoints do
+      begin
+        sgTargets.Cells[c, 1] := EditStr;
+      end;
+  end;
+end;
+
+
+// -----------------------------------------------------------------------------
+
+
 procedure TPhotoStimFrm.sgTargetsKeyPress(Sender: TObject; var Key: Char);
 // ------------------------------
 // String grid key press callback
 // ------------------------------
+var
+  cur: String;
+  c: Integer;
 begin
             
   if Key = #13 then
   begin
+    if not MainFrm.PhotoStim.MultipleAttenuators then
+    begin
+      if m_TargetsSelectedRow = 1 then
+      begin
+        cur := sgTargets.Cells[m_TargetsSelectedCol, 1];
+        for c := 1 to MainFrm.PhotoStim.NumStimPoints do
+        begin
+          sgTargets.Cells[c, 1] := cur;
+        end;
+      end;
+    end;
 
     // Validate protocol
     ValidateStimulusProtocol();
@@ -1398,7 +1518,8 @@ procedure TPhotoStimFrm.sgTargetsSelectCell(Sender: TObject; ACol,
 // String grid select cell callback
 // --------------------------------
 begin
-
+  m_TargetsSelectedCol := ACol;
+  m_TargetsSelectedRow := ARow;
 
   // Validate protocol
   ValidateStimulusProtocol();
@@ -1810,9 +1931,14 @@ begin
   // Get voltage program from PPR file
   PhotoStimulator.LoadProgram(FileName);
   PhotoStimulator.FileName := FileName;
+  if MainFrm.PhotoStim.MultipleAttenuators then
+    rbMultipleAttenuators.Checked := True
+  else
+    rbSingleAttenuator.Checked := True;
 
   // Load protocol into local buffers
-  PhotoStimulator.GetProtocol(m_X,
+  PhotoStimulator.GetProtocol(m_Attenuator,
+                              m_X,
                               m_Y,
                               m_PRE,
                               m_D,
@@ -1820,6 +1946,7 @@ begin
                               m_POST,
                               MainFrm.PhotoStim.NumStimPoints);
 
+  ValidateStimulusProtocol;
 end;
 
 
@@ -1847,7 +1974,8 @@ begin
   PhotoStimulator.FileName := MainFrm.PProtDirectory + FileName;
 
   // Load protocol into local buffers
-  PhotoStimulator.GetProtocol(m_X,
+  PhotoStimulator.GetProtocol(m_Attenuator,
+                              m_X,
                               m_Y,
                               m_PRE,
                               m_D,
@@ -1875,7 +2003,8 @@ procedure TPhotoStimFrm.SaveWaveform(FileName : String);
 begin
 
   // Set values in PhotoStimulator
-  PhotoStimulator.SetProtocol(m_X,
+  PhotoStimulator.SetProtocol(m_Attenuator,
+                              m_X,
                               m_Y,
                               m_PRE,
                               m_D,
@@ -2102,10 +2231,10 @@ begin
   MainFrm.PhotoStim.RefLineEnabled := ckReferenceLine.Checked;
 
   // Avoid list out of range error is no attenuators
-  if cbAttenuator.Items.Count > 0 then begin
+  {if cbAttenuator.Items.Count > 0 then begin
     MainFrm.PhotoStim.Attenuator :=
       Integer(cbAttenuator.Items.Objects[Max(cbAttenuator.ItemIndex, 0)]);
-  end;
+  end;}
 
 end;
 
@@ -2118,7 +2247,7 @@ procedure TPhotoStimFrm.UpdateTargetTable();
 // Load local protocol copy into string grid
 // -----------------------------------------
 var
-  r, c : Integer;
+  c : Integer;
 begin
 
   // Clear string grid
@@ -2126,18 +2255,16 @@ begin
     sgTargets.Cols[c].Clear;
 
   // Load protocol into string grid
-  for r := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
+  for c := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
   begin
-    for c := 0 to 6 do
-    begin
-        if c = 0 then sgTargets.Cells[r+1, c] := Format('%d', [r]);
-        if c = 1 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_PRE[r]]);
-        if c = 2 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_D[r]]);
-        if c = 3 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_POST[r]]);
-        if c = 4 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_A[r]]);
-        if c = 5 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_X[r]]);
-        if c = 6 then sgTargets.Cells[r+1, c] := Format('%.4g', [m_Y[r]]);
-    end;
+    sgTargets.Cells[c+1, 0] := Format('%d', [c]);
+    sgTargets.Cells[c+1, 1] := Format('%d', [m_Attenuator[c]]);
+    sgTargets.Cells[c+1, 2] := Format('%.4g', [m_PRE[c]]);
+    sgTargets.Cells[c+1, 3] := Format('%.4g', [m_D[c]]);
+    sgTargets.Cells[c+1, 4] := Format('%.4g', [m_POST[c]]);
+    sgTargets.Cells[c+1, 5] := Format('%.4g', [m_A[c]]);
+    sgTargets.Cells[c+1, 6] := Format('%.4g', [m_X[c]]);
+    sgTargets.Cells[c+1, 7] := Format('%.4g', [m_Y[c]]);
   end;
 
 end;
@@ -2216,26 +2343,31 @@ var
   r : Integer;
   cur : String;
   val : Single;
+  UsingSingleAttenuator: Boolean;
 begin
 
   // Validate every entry in list. Restore old values if new values are invalid.
-  for r := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
+  for c := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
   begin
-    for c := 1 to 6 do
+    for r := 1 to 7 do
     begin
-      cur := sgTargets.Cells[r+1, c];
+      cur := sgTargets.Cells[c+1, r];
       if ValidateNumericEntry(cur, val) then
       begin
-        sgTargets.Cells[r+1, c] := Format('%.4g',[val]);
+        if r = 1 then
+          sgTargets.Cells[c+1, r] := Format('%d', [StrToInt(cur)])
+        else
+          sgTargets.Cells[c+1, r] := Format('%.4g',[val]);
       end
       else
       begin
-        if c = 1 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_PRE[r]]);
-        if c = 2 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_D[r]]);
-        if c = 3 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_POST[r]]);
-        if c = 4 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_A[r]]);
-        if c = 5 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_X[r]]);
-        if c = 6 then sgTargets.Cells[r+1, c] := Format('%.4g',[m_Y[r]]);
+        if r = 1 then sgTargets.Cells[c+1, r] := Format('%d', [m_Attenuator[c]]);
+        if r = 2 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_PRE[c]]);
+        if r = 3 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_D[c]]);
+        if r = 4 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_POST[c]]);
+        if r = 5 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_A[c]]);
+        if r = 6 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_X[c]]);
+        if r = 7 then sgTargets.Cells[c+1, r] := Format('%.4g',[m_Y[c]]);
       end;
     end;
   end;
@@ -2244,19 +2376,36 @@ begin
   ValidateStimulusProtocolBounds();
 
   // Save to PhotoStimUnit
-  for c := 1 to 6 do
+  for r := 1 to 7 do
   begin
-    for r := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
+    for c := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
     begin
-      if c = 1 then m_PRE[r] := StrToFloat(sgTargets.Cells[r+1, c]);
-      if c = 2 then m_D[r] := StrToFloat(sgTargets.Cells[r+1, c]);
-      if c = 3 then m_POST[r] := StrToFloat(sgTargets.Cells[r+1, c]);
-      if c = 4 then m_A[r] := StrToFloat(sgTargets.Cells[r+1, c]);
-      if c = 5 then m_X[r] := StrToFloat(sgTargets.Cells[r+1, c]);
-      if c = 6 then m_Y[r] := StrToFloat(sgTargets.Cells[r+1, c]);
+      if r = 1 then m_Attenuator[c] := StrToInt(sgTargets.Cells[c+1, r]);
+      if r = 2 then m_PRE[c] := StrToFloat(sgTargets.Cells[c+1, r]);
+      if r = 3 then m_D[c] := StrToFloat(sgTargets.Cells[c+1, r]);
+      if r = 4 then m_POST[c] := StrToFloat(sgTargets.Cells[c+1, r]);
+      if r = 5 then m_A[c] := StrToFloat(sgTargets.Cells[c+1, r]);
+      if r = 6 then m_X[c] := StrToFloat(sgTargets.Cells[c+1, r]);
+      if r = 7 then m_Y[c] := StrToFloat(sgTargets.Cells[c+1, r]);
     end;
   end;
 
+  UsingSingleAttenuator := True;
+  if MainFrm.PhotoStim.MultipleAttenuators then
+  begin
+    for c := 1 to MainFrm.PhotoStim.NumStimPoints-1 do
+    begin
+      if m_Attenuator[c] <> m_Attenuator[0] then
+      begin
+        UsingSingleAttenuator := False;
+        Break;
+      end;
+    end;
+  end else
+  begin
+    MainFrm.PhotoStim.Attenuator := m_Attenuator[0];
+  end;
+  rbSingleAttenuator.Enabled := UsingSingleAttenuator;
 end;
 
 
@@ -2283,10 +2432,10 @@ begin
   shutterLatency := 0.0;
 
   // Selected attenuator
-  attenuator := Integer(cbAttenuator.Items.Objects[cbAttenuator.ItemIndex]);
+  //attenuator := Integer(cbAttenuator.Items.Objects[cbAttenuator.ItemIndex]);
 
   // Get min and max powers                            
-  if (attenuator = 1) or (attenuator = 2) or (attenuator = 3) then
+  {if (attenuator = 1) or (attenuator = 2) or (attenuator = 3) then
   begin
     if MainFrm.PhotoStim.PCEnable[attenuator] then
     begin
@@ -2314,17 +2463,57 @@ begin
         shutterLatency := 0.0;
       end;
     end;
-  end;
+  end;}
 
   // Validate bounds of every entry in list
   for c := 0 to MainFrm.PhotoStim.NumStimPoints-1 do
   begin
-    for r := 1 to 4 do
+    attenuator := StrToInt(sgTargets.Cells[c+1, 1]);
+    // If invalid attenuator entered, retain previous value
+    case attenuator of
+      1: if not MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI1) then
+        attenuator := m_Attenuator[c];
+      2: if not MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI2) then
+        attenuator := m_Attenuator[c];
+      3: if not MainFrm.IOResourceAvailable(MainFrm.IOConfig.PhotoStimI3) then
+        attenuator := m_Attenuator[c];
+    else
+      attenuator := m_Attenuator[c];
+    end;
+    sgTargets.Cells[c+1, 1] := Format('%d', [attenuator]);
+    if MainFrm.PhotoStim.PCEnable[attenuator] then
+    begin
+      maxPower := MainFrm.PhotoStim.PCPowerMax[attenuator];
+      minPower := MainFrm.PhotoStim.PCPowerMin[attenuator];
+      if MainFrm.PhotoStim.EnableShutter[attenuator] then
+      begin
+        shutterLatency := MainFrm.IOConfig.PhotoStimShutterLatency * 1000.0;
+      end
+      else
+      begin
+        shutterLatency := 0.0;
+      end;
+    end
+    else
+    begin
+      maxPower := MainFrm.PhotoStim.LinearPowerMax[attenuator];
+      minPower := MainFrm.PhotoStim.LinearPowerMin[attenuator];
+      if MainFrm.PhotoStim.EnableShutter[attenuator] then
+      begin
+        shutterLatency := MainFrm.IOConfig.PhotoStimShutterLatency * 1000.0;
+      end
+      else
+      begin
+        shutterLatency := 0.0;
+      end;
+    end;
+
+    for r := 2 to 5 do
     begin
       cur := StrToFloat(sgTargets.Cells[c+1, r]);
 
       // Check PRE (pre-delay) for first photo-stimulus location
-      if r = 1 then
+      if r = 2 then
       begin
         if (c = 0) and (cur < shutterLatency) then
         begin
@@ -2337,7 +2526,7 @@ begin
       end
 
       // Check D (duration) / POST (post-delay)
-      else if (r = 2) or (r = 3) then
+      else if (r = 3) or (r = 4) then
       begin
         if cur < 0.0 then
         begin
@@ -2346,7 +2535,7 @@ begin
       end
 
       // Check A (amplitude)
-      else if r = 4 then
+      else if r = 5 then
       begin
         if cur < minPower then
         begin
@@ -2541,5 +2730,10 @@ end;
 
 // -----------------------------------------------------------------------------
 
+
+procedure TPhotoStimFrm.rbAttenuatorsClick(Sender: TObject);
+begin
+  MainFrm.PhotoStim.MultipleAttenuators := rbMultipleAttenuators.Checked;
+end;
 
 end.
