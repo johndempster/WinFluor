@@ -259,6 +259,8 @@ type
              VMin : Single;                            // Minimum voltage
              VMax : Single;                            // Maximum voltage
              Amplitude : Single) : Single ;            // Desired amplitude in mW
+    procedure ToggleVoltageStimulus;  // To address failure of stimulus
+                                      // protocol to start on some rigs
 
     procedure Wait( Delay : Single ) ;
   public
@@ -269,7 +271,7 @@ type
     procedure StartADC ;
     procedure ImportImageFile( ImportFileName : String ) ;
     procedure UpdateStimProgramList ;
-    procedure UpdatePhotoStimProgramList ;    
+    procedure UpdatePhotoStimProgramList ;
     procedure StartRecordingToDisk(
               RecordingTime : Single ;             // Time to record for (s)
               Num : Integer ;                      // No. if frames/scans to record
@@ -431,8 +433,7 @@ begin
 
      StartADC ;
      // To address failure of stimulus protocol to start on some rigs
-     bStartStimulus.Click;
-     bStopStimulus.Click;
+     ToggleVoltageStimulus;
 
      // Start schedule events timer (runs at 50 ms intervals)
      InitialisationComplete := True ;
@@ -1988,8 +1989,7 @@ begin
         NewDisplaySetup ;
         StartADC ;
         // To address failure of stimulus protocol to start on some rigs
-        bStartStimulus.Click;
-        bStopStimulus.Click;
+        ToggleVoltageStimulus;
         end ;
 
      end;
@@ -2855,5 +2855,20 @@ begin
 
 
 
+
+procedure TRecADCOnlyFrm.ToggleVoltageStimulus;
+begin
+  if MainFrm.PhotoStim.Enabled then
+  begin
+    ckPhotoStimEnabled.Checked := False;
+    bStartStimulus.Click;
+    bStopStimulus.Click;
+    ckPhotoStimEnabled.Checked := True;
+  end else
+  begin
+    bStartStimulus.Click;
+    bStopStimulus.Click;
+  end;
+end;
 
 end.
