@@ -1,6 +1,6 @@
 object PowerCalibrationFrm: TPowerCalibrationFrm
-  Left = 574
-  Top = 183
+  Left = 528
+  Top = 148
   Width = 666
   Height = 765
   Caption = 'Power Calibration'
@@ -20,7 +20,7 @@ object PowerCalibrationFrm: TPowerCalibrationFrm
   PixelsPerInch = 96
   TextHeight = 13
   object plPlot: TXMultiYPlot
-    Left = 10
+    Left = 180
     Top = 10
     Width = 450
     Height = 340
@@ -61,7 +61,7 @@ object PowerCalibrationFrm: TPowerCalibrationFrm
     MetafileHeight = 400
   end
   object plFittedPlot: TXMultiYPlot
-    Left = 10
+    Left = 180
     Top = 370
     Width = 450
     Height = 340
@@ -101,9 +101,48 @@ object PowerCalibrationFrm: TPowerCalibrationFrm
     MetafileWidth = 500
     MetafileHeight = 400
   end
+  object lbDriveChannel: TLabel
+    Left = 90
+    Top = 12
+    Width = 81
+    Height = 13
+    Caption = 'Drive Channel'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lbPowerChannel: TLabel
+    Left = 90
+    Top = 42
+    Width = 86
+    Height = 13
+    Caption = 'Power Channel'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lbAttenuator: TLabel
+    Left = 10
+    Top = 90
+    Width = 92
+    Height = 13
+    Caption = 'Attenuator Type'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object PowerTable: TStringGrid
-    Left = 472
-    Top = 10
+    Left = 10
+    Top = 240
     Width = 145
     Height = 340
     ColCount = 2
@@ -114,8 +153,8 @@ object PowerCalibrationFrm: TPowerCalibrationFrm
     TabOrder = 0
   end
   object ParameterBox: TGroupBox
-    Left = 472
-    Top = 368
+    Left = 10
+    Top = 600
     Width = 161
     Height = 110
     Caption = 'Fitted Parameters'
@@ -182,5 +221,56 @@ object PowerCalibrationFrm: TPowerCalibrationFrm
       Height = 13
       Alignment = taRightJustify
     end
+  end
+  object cbDriveChannel: TComboBox
+    Left = 8
+    Top = 10
+    Width = 75
+    Height = 21
+    ItemHeight = 13
+    TabOrder = 2
+    Text = 'cbDriveChannel'
+    OnChange = cbDriveChannelChange
+  end
+  object cbPowerChannel: TComboBox
+    Left = 8
+    Top = 40
+    Width = 75
+    Height = 21
+    ItemHeight = 13
+    TabOrder = 3
+    Text = 'cbPowerChannel'
+    OnChange = cbPowerChannelChange
+  end
+  object rbSinSqrd: TRadioButton
+    Left = 10
+    Top = 110
+    Width = 113
+    Height = 17
+    Caption = 'Crossed (sin^2)'
+    TabOrder = 4
+  end
+  object rbCosSqrd: TRadioButton
+    Left = 10
+    Top = 130
+    Width = 113
+    Height = 17
+    Caption = 'Parallel (cos^2)'
+    TabOrder = 5
+  end
+  object bFitData: TButton
+    Left = 8
+    Top = 180
+    Width = 121
+    Height = 25
+    Caption = 'Fit Calibration Data'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 6
+    OnClick = bFitDataClick
   end
 end

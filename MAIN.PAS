@@ -2338,7 +2338,9 @@ begin
      mnStimSetup.Enabled := True ;
      for i := 0 to MDIChildCount-1 do if MDIChildren[i].Name = 'WavGenFrm' then mnStimSetup.Enabled := False ;
 
-     if (not IDRFile.Open) or (IDRFile.NumFrames <= 0) then
+     if (not IDRFile.Open) or
+        (IDRFile.NumFrames <= 0) or
+        (IDRFile.ADCNumChannels <= 0) then
      // if True then
        mnPowerCalibration.Enabled := False
      else

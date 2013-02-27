@@ -21,6 +21,7 @@ const
   ProtocolStepSize = 3.0; // in seconds
   AverageStart = 1.0; // Within a given protocol step, average from time
   AverageEnd = 3.0;   //   AverageStart to AverageEnd (from beginning of step)
+  HalfPi = Pi/2.0;
 
 type
   TSmallIntArray = Array[0..99999999] of SmallInt;
@@ -52,9 +53,20 @@ type
     NetBiasValueLabel: TLabel;
     PMaxValueLabel: TLabel;
     PMinValueLabel: TLabel;
+    cbDriveChannel: TComboBox;
+    cbPowerChannel: TComboBox;
+    rbSinSqrd: TRadioButton;
+    rbCosSqrd: TRadioButton;
+    lbDriveChannel: TLabel;
+    lbPowerChannel: TLabel;
+    lbAttenuator: TLabel;
+    bFitData: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure cbDriveChannelChange(Sender: TObject);
+    procedure cbPowerChannelChange(Sender: TObject);
+    procedure bFitDataClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -75,7 +87,6 @@ type
     DrivingValues: Array[0..ProtocolSteps-1] of Single;
     PowerValues: Array[0..ProtocolSteps-1] of Single;
     FittedParameters: TFitParameters;
-    HalfPi: Double;
     procedure PlotLine;
     procedure PlotADCChannel(StartAtFrame: Integer;
                              EndAtFrame: Integer;
@@ -120,10 +131,26 @@ procedure TPowerCalibrationFrm.FormShow(Sender: TObject);
 // --------------------------------------
 // Initialisations when form is displayed
 // --------------------------------------
+var
+  ch: Integer; // ADC Channel index
 begin
-  HalfPi := Pi/2.0;
-  DrivingChannel := 1;
-  PowerChannel := 2;
+  // ADC display selection list
+  cbDriveChannel.Clear;
+  cbPowerChannel.Clear;
+  for ch := 0 to MainFrm.IDRFile.ADCNumChannels-1 do
+  begin
+    cbDriveChannel.Items.Add(MainFrm.IDRFile.ADCChannel[ch].ADCName);
+    cbPowerChannel.Items.Add(MainFrm.IDRFile.ADCChannel[ch].ADCName);
+  end;
+  cbDriveChannel.ItemIndex := 0;
+  if MainFrm.IDRFile.ADCNumChannels > 1 then
+    cbPowerChannel.ItemIndex := 1
+  else
+    cbPowerChannel.ItemIndex := 0;
+  DrivingChannel := cbDriveChannel.ItemIndex;
+  PowerChannel := cbPowerChannel.ItemIndex;
+
+  rbSinSqrd.Checked := True;
   ColorSequence[0] := clBlue;
   ColorSequence[1] := clRed;
   ColorSequence[2] := clGreen;
@@ -163,10 +190,7 @@ begin
   TabulateAverages;
   WriteTableToFile;
 
-  // TestFit;
-  FitCalibrationData;
   plFittedPlot.CreatePlot;
-  PlotFittedCurve;
 end;
 
 procedure TPowerCalibrationFrm.PlotLine;
@@ -403,10 +427,10 @@ procedure TPowerCalibrationFrm.FormResize(Sender: TObject);
 begin
   // Plot display area
   plPlot.Height := Max((ClientHeight div 2) - plPlot.Top - 5, 2);
-  plPlot.Width := Max(ClientWidth - plPlot.Left -
-                           15 - PowerTable.Width, 2);
-  PowerTable.Left := plPlot.Left + plPlot.Width + 5;
-  ParameterBox.Left := PowerTable.Left;
+  plPlot.Width := Max(ClientWidth - // plPlot.Left -
+                           50 - PowerTable.Width, 2);
+  // PowerTable.Left := plPlot.Left + plPlot.Width + 5;
+  // ParameterBox.Left := PowerTable.Left;
   ParameterBox.Top := PowerTable.Top + PowerTable.Height + 10;
   ParameterBox.Width := PowerTable.Width;
   plFittedPlot.Top := plPlot.Top + plPlot.Height + 10;
@@ -873,7 +897,11 @@ begin
   // * K - number of parameters being fitted (here 4)
   //
   SinSqrdFitter := TCurveFitter.Create(Self);
-  SinSqrdFitter.Equation := SinSqrd;
+  if rbSinSqrd.Checked then
+    SinSqrdFitter.Equation := SinSqrd
+  else
+    SinSqrdFitter.Equation := CosSqrd;
+  // SinSqrdFitter.Equation := SinSqrd;
 
   N := ProtocolSteps;
   // M := 1;
@@ -944,7 +972,7 @@ begin
                            SinSqrdFitter.Parameters[3];
   FittedParameters.Pmin := SinSqrdFitter.Parameters[3];
   VpiValueLabel.Caption := Format('%0.2f', [FittedParameters.Vpi]);
-  NetBiasValueLabel.Caption := Format('%0.2f', [FittedParameters.NetBias]);
+  NetBiasValueLabel.Caption := Format('%0.0f', [FittedParameters.NetBias]);
   PMaxValueLabel.Caption := Format('%0.2f', [FittedParameters.Pmax]);
   PMinValueLabel.Caption := Format('%0.2f', [FittedParameters.Pmin]);
 end;
@@ -997,8 +1025,12 @@ begin
               MaxPlotPoints;
     Arg := HalfPi * (x/(FittedParameters.Vpi * 1000.0) -
                      FittedParameters.NetBias / 375.0);
-    y := (FittedParameters.Pmax - FittedParameters.Pmin) *
-         Sin(Arg) * Sin(Arg) + FittedParameters.Pmin;
+    if rbSinSqrd.Checked then
+      y := (FittedParameters.Pmax - FittedParameters.Pmin) *
+           Sin(Arg) * Sin(Arg) + FittedParameters.Pmin
+    else
+      y := (FittedParameters.Pmax - FittedParameters.Pmin) *
+           Cos(Arg) * Cos(Arg) + FittedParameters.Pmin;
     plFittedPlot.AddPoint(LineNum, x, y);
   end;
   DelX := 0.01 * (plFittedPlot.XAxisMax - plFittedPlot.XAxisMin);
@@ -1025,6 +1057,63 @@ begin
     plFittedPlot.AddPoint(LineNum, DrivingValues[i], Min(PowerValues[i] + DelY,
                                        plFittedPlot.YAxisMax));
   end;
+end;
+
+procedure TPowerCalibrationFrm.cbDriveChannelChange(Sender: TObject);
+begin
+  DrivingChannel := cbDriveChannel.ItemIndex;
+  PowerTable.Cells[0,0] := MainFrm.IDRFile.ADCChannel[DrivingChannel].ADCName +
+               ' (' + MainFrm.IDRFile.ADCChannel[DrivingChannel].ADCUnits + ')';
+
+  plPlot.ClearAllPlots;
+  // Add readout cursor to plot
+  plPlot.ClearVerticalCursors;
+  ReadoutCursor := plPlot.AddVerticalCursor(clGreen, '?ri');
+
+  plPlot.ShowMarkers := False;
+  plPlot.ShowLines := True;
+
+  Resize;
+  Channel := DrivingChannel;
+  plPlot.CreatePlot;
+  PlotLine;
+  Channel := PowerChannel;
+  plPlot.CreatePlot;
+  PlotLine;
+  TabulateAverages;
+  WriteTableToFile;
+end;
+
+procedure TPowerCalibrationFrm.cbPowerChannelChange(Sender: TObject);
+begin
+  PowerChannel := cbPowerChannel.ItemIndex;
+  PowerTable.Cells[1,0] := MainFrm.IDRFile.ADCChannel[PowerChannel].ADCName +
+               ' (' + MainFrm.IDRFile.ADCChannel[PowerChannel].ADCUnits + ')';
+  plPlot.ClearAllPlots;
+  // Add readout cursor to plot
+  plPlot.ClearVerticalCursors;
+  ReadoutCursor := plPlot.AddVerticalCursor(clGreen, '?ri');
+
+  plPlot.ShowMarkers := False;
+  plPlot.ShowLines := True;
+
+  Resize;
+  Channel := DrivingChannel;
+  plPlot.CreatePlot;
+  PlotLine;
+  Channel := PowerChannel;
+  plPlot.CreatePlot;
+  PlotLine;
+  TabulateAverages;
+  WriteTableToFile;
+end;
+
+procedure TPowerCalibrationFrm.bFitDataClick(Sender: TObject);
+begin
+  plFittedPlot.ClearAllPlots;
+  plFittedPlot.CreatePlot;
+  FitCalibrationData;
+  PlotFittedCurve;
 end;
 
 end.
