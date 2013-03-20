@@ -222,6 +222,9 @@ type
     DynamicProtocolCounter : Integer ;        // Dynamic protocol scan counter
     DynamicProtocolEnabled : Boolean ;        // Dyanmic protocol enabled flag
 
+    RecordingFirstTrace: Boolean;
+    OldTScale: Single;
+
     procedure UpdateCameraStartWaveform ;
     procedure UpdateCameraStartWaveformDAC ;
     procedure UpdateCameraStartWaveformDIG ;
@@ -385,6 +388,8 @@ begin
      VHold2Panel.Visible := MainFrm.IOResourceAvailable(MainFrm.IOConfig.VCommand[2]) ;
 
      MainFrm.Recording := False ;
+     RecordingFirstTrace := False;
+     OldTScale := 1.0;
      bRecord.Enabled := True ;
      bStop.Enabled := False ;
      TimerProcBusy := False ;
@@ -1503,6 +1508,21 @@ begin
        // Set display time units
        SetDisplayUnits ;
 
+       if MainFrm.Recording then
+       begin
+         if not RecordingFirstTrace then
+         begin
+           scADCDisplay.XOffset := scADCDisplay.XOffset + scADCDisplay.MaxPoints;
+         end else
+         begin
+           scADCDisplay.XOffset := Round((scADCDisplay.XOffset +
+                                          scADCDisplay.NumPoints) * OldTScale /
+                                          scADCDisplay.TScale);
+           // scADCDisplay.XOffset := 0;
+           RecordingFirstTrace := False;
+         end;
+       end else
+         scADCDisplay.XOffset := 0;
        scADCDisplay.xMin := 0 ;
        scADCDisplay.xMax := scADCDisplay.MaxPoints-1 ;
        // Enable/disable display calibration grid
@@ -2183,6 +2203,8 @@ begin
 
      // Start recording
      AutoRecordingMode := False ;
+     RecordingFirstTrace := True;
+     scADCDisplay.XOffset := 0;
      StartRecordingToDisk( edRecordingTime.Value,
                            1,
                            RecordingMode ) ;
@@ -2496,7 +2518,15 @@ procedure TRecADCOnlyFrm.rbTDisplayUnitsSecsClick(Sender: TObject);
 // Set Display time units to secs
 // ------------------------------
 begin
-     SetDisplayUnits ;
+  SetDisplayUnits ; // Do this first, because for scale change we want
+                    // OldTScale = scADCDisplay.TScale
+  if MainFrm.Recording then
+  begin
+    OldTScale := scADCDisplay.TScale;
+    RecordingFirstTrace := True;
+  end;
+  ResetDisplays := True ;
+  //   SetDisplayUnits ;
      end;
 
 
@@ -2550,6 +2580,11 @@ procedure TRecADCOnlyFrm.edTDisplayKeyPress(Sender: TObject;
 begin
      if key = #13 then begin
         MainFrm.ADCDisplayWindow := edTDisplay.Value ;
+        if MainFrm.Recording then
+        begin
+          OldTScale := scADCDisplay.TScale;
+          RecordingFirstTrace := True;
+        end;
         SetDisplayUnits ;
         ResetDisplays := True ;
         end ;
@@ -2706,6 +2741,11 @@ procedure TRecADCOnlyFrm.bTDisplayHalfClick(Sender: TObject);
 begin
      edTDisplay.Value := edTDisplay.Value*0.5 ;
      MainFrm.ADCDisplayWindow := edTDisplay.Value ;
+     if MainFrm.Recording then
+     begin
+       OldTScale := scADCDisplay.TScale;
+       RecordingFirstTrace := True;
+     end;
      SetDisplayUnits ;
      ResetDisplays := True ;
      end;
@@ -2717,6 +2757,11 @@ procedure TRecADCOnlyFrm.bTDisplayDoubleClick(Sender: TObject);
 begin
      edTDisplay.Value := edTDisplay.Value*2.0 ;
      MainFrm.ADCDisplayWindow := edTDisplay.Value ;
+     if MainFrm.Recording then
+     begin
+       OldTScale := scADCDisplay.TScale;
+       RecordingFirstTrace := True;
+     end;
      SetDisplayUnits ;
      ResetDisplays := True ;
      end;
