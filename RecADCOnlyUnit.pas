@@ -392,7 +392,7 @@ begin
      bRecord.Enabled := True ;
      bStop.Enabled := False ;
      TimerProcBusy := False ;
-     ResetDisplays := False ;
+     ResetDisplays := True;
      bMark.Enabled := False ;
      cbStimProgram.Enabled := True ;
      VHoldGrp.Enabled := True ;
