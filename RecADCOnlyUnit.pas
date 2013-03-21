@@ -785,6 +785,7 @@ begin
      ADCNumScansCumulative := 0 ;
 
      // Erase display
+     ADCNumBlocksDisplayed := 0 ; // So OverlayTraces works correctly
      scADCDisplay.NumPoints := 0 ;
      scADCDisplay.Invalidate ;
 
@@ -1540,7 +1541,7 @@ begin
                                           scADCDisplay.NumPoints) * OldTScale /
                                           scADCDisplay.TScale);
            // scADCDisplay.XOffset := 0;
-           RecordingFirstTrace := False;
+           // RecordingFirstTrace := False;
          end;
        end else
          scADCDisplay.XOffset := 0;
@@ -1554,7 +1555,8 @@ begin
 //                            div (ADCNumScansPerBlock*ADCNumChannels) ;
 
        scADCDisplay.NumPoints := 0 ;
-       if MainFrm.OverLayTraces then
+       if MainFrm.OverLayTraces and
+          not RecordingFirstTrace then
        begin
          SaveNumPoints := ADCNumBlocksDisplayed * ADCNumPointsPerBlock;
          for ch := 0 to MainFrm.ADCNumChannels-1 do
@@ -1562,11 +1564,14 @@ begin
            scADCDisplay.ChanColor[ch] := scADCDisplay.GetPreviousTraceColor;
          end;
          scADCDisplay.DisplayNewPoints(SaveNumPoints);
+         if MainFrm.Recording then
+           scADCDisplay.RedrawXAxis;
          scADCDisplay.NumPoints := SaveNumPoints;
        end else
        begin
          scADCDisplay.Invalidate;
        end;
+       RecordingFirstTrace := False;
 
        if ResetDisplays then
        begin
