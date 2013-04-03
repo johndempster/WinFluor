@@ -24,6 +24,7 @@ unit SetupUnit;
 //             overlap readout mode.
 // 30.04.12 JD Clocked digital outputs of X series devices (634X,635X,636X) now detected
 //             Reset Boards no longer results in repeated digital stimulus output lists
+// 03.04.13 JD Z stage control DAC channel can now be set to none.
 
 interface
 
@@ -662,12 +663,13 @@ begin
      // Z stage control
 
      cbZStageControl.Clear ;
+     cbZStageControl.Items.AddObject('None',TObject(MaxResources+1)) ;
      for i := 0 to LabIO.NumResources-1 do
          if LabIO.Resource[i].ResourceType = DACOut then begin
          s := format('Device %d: DAC%d',
               [LabIO.Resource[i].Device,
                LabIO.Resource[i].StartChannel]) ;
-         cbZStageControl.Items.AddObject(s,TObject(i))
+         cbZStageControl.Items.AddObject(s,TObject(i)) ;
          end ;
     cbZStageControl.ItemIndex := Max( 0,
         cbZStageControl.Items.IndexOfObject(TObject(MainFrm.IOConfig.ZStageControl))) ;

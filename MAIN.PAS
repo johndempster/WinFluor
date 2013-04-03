@@ -124,7 +124,8 @@ unit Main;
 //                 No. points in zero level average now set correctly in WCP file export
 // 14.12.12 V3.4.3 Turn on when recording option added. When selected, excitation light is turned on
 //                 when recording starts and off at which it stops.
-// 28.03.12 V3.4.4 Piezo Z focus and Z stack control added (ZStageUnit.pas)
+// 28.1.13 V3.4.4 Piezo Z focus and Z stack control added (ZStageUnit.pas)
+// 03.04.13 V3.4.5 Imaging area selection rectangle now made more visible by small squares at corners and middle.
 
 interface
 
@@ -1109,6 +1110,9 @@ begin
         Caption := 'WinFluor : ' + IDRFile.FileName ;
         UpdateRecentFilesList ;
         end ;
+
+     // Restart camera (to ensure image capture and timing remain synchronised due to delays in creating file)
+     if FormExists( 'RecordFrm' ) then RecordFrm.RestartCamera ;
 
      end;
 
