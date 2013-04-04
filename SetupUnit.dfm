@@ -129,7 +129,7 @@ object SetupFrm: TSetupFrm
     Top = 8
     Width = 473
     Height = 393
-    ActivePage = CameraTab
+    ActivePage = ZStageTab
     TabOrder = 3
     object CameraTab: TTabSheet
       Caption = 'Camera'
@@ -558,7 +558,7 @@ object SetupFrm: TSetupFrm
           Width = 249
           Height = 22
           Style = csDropDownList
-          ItemHeight = 14
+          ItemHeight = 0
           TabOrder = 0
           OnChange = cbLightSourceChange
         end
@@ -697,7 +697,7 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 0
           end
           object cbLSWavelengthEnd: TComboBox
@@ -706,7 +706,7 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 1
           end
         end
@@ -1372,7 +1372,7 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 1
           end
           object cbLSLaserEnd: TComboBox
@@ -1381,7 +1381,7 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 2
           end
         end
@@ -1471,7 +1471,7 @@ object SetupFrm: TSetupFrm
             Width = 145
             Height = 22
             Style = csDropDownList
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 0
           end
           object rbLSShutterActiveHigh: TRadioButton
@@ -2050,7 +2050,7 @@ object SetupFrm: TSetupFrm
           Width = 121
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 0
         end
         object GroupBox15: TGroupBox

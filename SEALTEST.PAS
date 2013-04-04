@@ -586,7 +586,8 @@ begin
                                        NumTestSamples,
                                        MainFrm.ADCVoltageRange,
                                        False,
-                                       FindTimingDevice ) ;
+                                       FindTimingDevice,
+                                       True ) ;
 
                    // Set up D/A output sweep
                    for Dev := 1 to LabIO.NumDevices do if DeviceInUse[Dev] then begin
