@@ -34,7 +34,9 @@ unit LabIOUnit;
 // 30.04.12 JD .... Digital stimulus outputs of X series devices now detected
 // 30.07.12 JD .... NIDAQMAXUpdateDACOutputBuffer & NIDAQ_UpdateDACOutputBuffer added
 //                  NIDAQmx D/A outputs can now be updated without restarting MemoryToDAC
-//                  Strings converted to ANSISTring, Char to ANSIChar 
+//                  Strings converted to ANSISTring, Char to ANSIChar
+// 03.04.13 JD .... NIDAQMX_MemoryToDIG() Digital outputs now clocked by digital sample clock
+//                  when no D/A channels in use ion timing device
 
 interface
 
@@ -149,7 +151,8 @@ type
              nSamples : Integer ;
              ADCVoltageRange : Single ;
              CircularBuffer : Boolean ;
-             TimingDevice : SmallInt
+             TimingDevice : SmallInt ;
+             UseTimingDeviceDACClock : Boolean
              ) : Boolean ;
     function NIDAQMX_StopADC( Device : SmallInt ) : Boolean ;
     function NIDAQMX_ADCInputModeCode(
@@ -191,7 +194,8 @@ type
             UpdateInterval : Double ;          { D/A output interval (s) (IN) }
             CircularBufferMode : Boolean ;     { TRUE = continuous update from circular buffer }
             ExternalTrigger : Boolean ;
-            TimingDevice : SmallInt           // Device providing ADC/DAC timing pulse
+            TimingDevice : SmallInt ;          // Device providing ADC/DAC timing pulse
+            UseTimingDeviceDACClock : Boolean
             ): Boolean ;                      { Returns TRUE=D/A active }
 
     procedure NIDAQMX_UpdateDIGOutputBuffer ;
@@ -352,7 +356,8 @@ type
              nSamples : Integer ;
              ADCVoltageRange : Single ;
              CircularBuffer : Boolean ;
-             TimingDevice : SmallInt
+             TimingDevice : SmallInt ;
+             UseTimingDeviceDACClock : Boolean
              ) : Boolean ;
 
     procedure CheckSamplingInterval(
@@ -406,7 +411,8 @@ type
              UpdateInterval : Double ;
              CircularBufferMode : Boolean ;
              ExternalTrigger : Boolean ;
-             TimingDevice : SmallInt
+             TimingDevice : SmallInt ;
+             UseTimingDeviceDACClock : Boolean
              ) : Boolean ;
 
     procedure UpdateDIGOutputBuffer ;
@@ -643,7 +649,8 @@ function TLabIO.ADCToMemoryExtScan(
          nSamples : Integer ;
          ADCVoltageRange : Single ;
          CircularBuffer : Boolean ;
-         TimingDevice : SmallInt
+         TimingDevice : SmallInt ;
+         UseTimingDeviceDACClock : Boolean
          ) : Boolean ;
 // ------------------
 // Start A/D sampling
@@ -658,7 +665,9 @@ begin
                             nSamples,
                             ADCVoltageRange,
                             CircularBuffer,
-                            TimingDevice ) ;
+                            TimingDevice,
+                            UseTimingDeviceDACClock ) ;
+                            
         NIDAQ : Result := NIDAQ_ADCToMemoryExtScan(
                             Device,
                             ADCBuf,
@@ -834,7 +843,8 @@ function TLabIO.MemoryToDIG(
              UpdateInterval : Double ;
              CircularBufferMode : Boolean ;
              ExternalTrigger : Boolean ;
-             TimingDevice : SmallInt
+             TimingDevice : SmallInt ;
+             UseTimingDeviceDACClock : Boolean
              ) : Boolean ;
 // --------------------------------------------
 // Start digital waveform output on selected device
@@ -849,7 +859,8 @@ begin
                   UpdateInterval,
                   CircularBufferMode,
                   ExternalTrigger,
-                  TimingDevice ) ;
+                  TimingDevice,
+                  UseTimingDeviceDACClock ) ;
         end ;
     end ;
 
@@ -1464,7 +1475,8 @@ function TLabIO.NIDAQMX_ADCToMemoryExtScan(
           nSamples : Integer ;               { Number of A/D samples ( per channel) (IN) }
           ADCVoltageRange : Single ;         { A/D input voltage range (V) (IN) }
           CircularBuffer : Boolean ;          { Repeated sampling into buffer (IN) }
-          TimingDevice : SmallInt            // Device supply ADC/DAC timing pulses
+          TimingDevice : SmallInt ;           // Device supply ADC/DAC timing pulses
+          UseTimingDeviceDACClock : Boolean
           ) : Boolean ;                      { Returns TRUE indicating A/D started }
 { ----------------------------
   Start A/D converter sampling
@@ -1507,7 +1519,12 @@ begin
                        else SampleMode := DAQmx_Val_FiniteSamps ;
 
      // Set timing
-     ClockSource := '/' + DeviceName[TimingDevice] + '/ao/sampleclock' ;
+     if UseTimingDeviceDACClock then begin
+        ClockSource := '/' + DeviceName[TimingDevice] + '/ao/sampleclock' ;
+        end
+     else begin
+        ClockSource := '/' + DeviceName[TimingDevice] + '/do/sampleclock' ;     
+        end ;
      SamplingRate := 200000.0 / (nChannels+1) ;
 
      CheckError( DAQmxCfgSampClkTiming( ADCTask[Device],
@@ -2047,7 +2064,8 @@ function TLabIO.NIDAQMX_MemoryToDIG(
           UpdateInterval : Double ;          { Digital output interval (s) (IN) }
           CircularBufferMode : Boolean ;     { TRUE = continuous update from circular buffer }
           ExternalTrigger : Boolean ;
-          TimingDevice : SmallInt           // Device providing ADC/DAC timing pulse
+          TimingDevice : SmallInt ;          // Device providing ADC/DAC timing pulse
+          UseTimingDeviceDACClock : Boolean // DAC Clock available for user on timing device
           ): Boolean ;                      { Returns TRUE=D/A active }
 { --------------------------
   Start digital output
@@ -2081,13 +2099,14 @@ begin
                                     DAQmx_Val_ChanForAllLines ));
 
      // Set D/A clock source
-     if TimingDevice <> Device then begin
+     if UseTimingDeviceDACClock then begin
+        // Use DAC clock to time digital updates
         ClockSource := '/' + DeviceName[TimingDevice] + '/ao/sampleclock' ;
         end
      else begin
+        // No DACs in use on timing device, use own digital clock
         ClockSource := 'onboardclock' ;
         end ;
-     ClockSource := '/' + DeviceName[TimingDevice] + '/ao/sampleclock' ;
 
      // Configure buffer size
      NumPointsInBuffer := round(2./UpdateInterval) ;
@@ -2153,7 +2172,7 @@ var
     IOBuf : pBig32bitArray ;
 begin
 
-    for iDev := 1 to NumDevices do if DACActive[iDev] then begin ;
+    for iDev := 1 to NumDevices do if DIGActive[iDev] then begin ;
 
         // Update digital output buffer
         DAQmxGetWriteSpaceAvail( DIGTask[iDev], NumPointsToWrite ) ;
