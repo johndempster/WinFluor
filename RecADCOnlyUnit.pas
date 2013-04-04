@@ -718,7 +718,8 @@ begin
                                ADCNumSamplesInBuffer div MainFrm.ADCNumChannels,
                                MainFrm.ADCVoltageRange,
                                True,
-                               FindTimingDevice ) ;
+                               FindTimingDevice,
+                               True ) ;
 
      // Initialise circular A/D and display buffers
      ADCPointer := MainFrm.ADCNumChannels ;
@@ -760,7 +761,8 @@ begin
                                MainFrm.ADCScanInterval,
                                True,
                                WaitForExtTrigger,
-                               FindTimingDevice ) ;
+                               FindTimingDevice,
+                               True ) ;
             end ;
 
          // Set up D/A output sweep
@@ -1681,7 +1683,8 @@ begin
                                   MainFrm.ADCScanInterval,
                                   True,
                                   False,
-                                  FindTimingDevice) ;
+                                  FindTimingDevice,
+                                  True ) ;
                 end ;
 
                 // Set up D/A output sweep

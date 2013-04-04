@@ -126,8 +126,9 @@ unit RecUnit;
 // 28.01.13 V3.3.4 JD Piezo Z focus control added
 //                 FrameDisplayed array removed. Could have been causing random memory access violations
 //                 when overwriting other variables since was being written beyond end of array.
-
-
+// 03.04.13 JD Imaging area selection rectangle now made more visible by small squares at corners and middle.
+//             LabIO Analog input and digital outputs now clocked by digital sample clock when no D/A channels in use on timing device
+//             Excitation on/off now restarts camera when not recording to reduce delay on light changing
 {$DEFINE USECONT}
 
 
@@ -601,6 +602,15 @@ type
   function GetNumFramesRequired : Integer ;
   procedure UpdateRecordingModePanels ;
 
+  procedure DrawCaptureRegion(
+            Canvas : TCanvas ;
+            SelectedRect : TRect
+            ) ;
+  procedure DrawSquare(
+            Canvas : TCanvas ;
+            X : Integer ;
+            Y : Integer ) ;
+
   public
     { Public declarations }
 
@@ -1034,7 +1044,8 @@ begin
                                ADCNumSamplesInBuffer div MainFrm.ADCNumChannels,
                                MainFrm.ADCVoltageRange,
                                True,
-                               FindTimingDevice ) ;
+                               FindTimingDevice,
+                               DeviceDACsInUse[FindTimingDevice] ) ;
 
      // Initialise circular A/D and display buffers
      //ADCPointer := MainFrm.ADCNumChannels ;
@@ -1818,7 +1829,8 @@ begin
                                DACUpdateInterval,
                                True,
                                False,
-                               FindTimingDevice ) ;
+                               FindTimingDevice,
+                               DeviceDACsInUse[FindTimingDevice] ) ;
             end ;
 
          // Set up D/A output sweep
@@ -3663,7 +3675,8 @@ begin
     Image.Picture.Assign(BitMap) ;
 
     // Draw rectangle round selected capture region
-    Image.Canvas.FrameRect(CaptureRegion) ;
+    //Image.Canvas.FrameRect(CaptureRegion) ;
+    DrawCaptureRegion( Image.Canvas, CaptureRegion ) ;
 
     // Draw ROIs
     Image.Canvas.Pen.Color := clWhite ;
@@ -3797,7 +3810,8 @@ begin
     Image.Picture.Assign(BitMap) ;
 
     // Draw rectangle round selected capture region
-    Image.Canvas.FrameRect(CaptureRegion) ;
+    //Image.Canvas.FrameRect(CaptureRegion) ;
+    DrawCaptureRegion( Image.Canvas, CaptureRegion ) ;
 
     // Draw ROIs
     Image.Canvas.Pen.Color := clWhite ;
@@ -3817,6 +3831,64 @@ begin
     Inc(FrameTypeCounter[FrameType]) ;
 
     end ;
+
+
+procedure TRecordFrm.DrawCaptureRegion(
+          Canvas : TCanvas ;
+          SelectedRect : TRect
+          ) ;
+// ------------------------------------------------------
+// Display selected scanning region in full field of view
+// ------------------------------------------------------
+var
+    KeepPenColor,KeepFontColor : Integer ;
+    KeepStyle : TBrushStyle ;
+begin
+
+     KeepPenColor := Canvas.Font.Color ;
+     KeepStyle := Canvas.Brush.Style ;
+     KeepFontColor := Canvas.Font.Color ;
+
+     Canvas.Pen.Color := clwhite ;
+     Canvas.Brush.Style := bsClear ;
+     Canvas.Font.Color := clWhite ;
+
+     // Display zomm area selection rectangle
+     Canvas.Rectangle(SelectedRect);
+
+     // Display square corner and mid-point tags
+     DrawSquare( Canvas, SelectedRect.Left, SelectedRect.Top ) ;
+     DrawSquare( Canvas, (SelectedRect.Left + SelectedRect.Right) div 2, SelectedRect.Top ) ;
+     DrawSquare( Canvas, SelectedRect.Right, SelectedRect.Top ) ;
+     DrawSquare( Canvas, SelectedRect.Left, (SelectedRect.Top + SelectedRect.Bottom) div 2) ;
+     DrawSquare( Canvas, SelectedRect.Right, (SelectedRect.Top + SelectedRect.Bottom) div 2) ;
+     DrawSquare( Canvas, SelectedRect.Left, SelectedRect.Bottom ) ;
+     DrawSquare( Canvas, (SelectedRect.Left + SelectedRect.Right) div 2, SelectedRect.Bottom ) ;
+     DrawSquare( Canvas, SelectedRect.Right, SelectedRect.Bottom ) ;
+
+     Canvas.Font.Color := KeepPenColor ;
+     Canvas.Brush.Style := KeepStyle ;
+     Canvas.Font.Color := KeepFontColor ;
+
+     end ;
+
+
+procedure TRecordFrm.DrawSquare(
+          Canvas : TCanvas ;
+          X : Integer ;
+          Y : Integer ) ;
+var
+    Square : TRect ;
+begin
+     Square.Left := X - 3 ;
+     Square.Right := X + 3 ;
+     Square.Top := Y - 3 ;
+     Square.Bottom := Y + 3 ;
+     //Bitmap.Canvas.Pen.Color := clwhite ;
+     Canvas.Brush.Style := bsSolid ;
+     Canvas.Rectangle(Square);
+
+     end ;
 
 
 procedure TRecordFrm.DisplayCalibrationBar(
@@ -4314,7 +4386,7 @@ procedure TRecordFrm.StopRecording ;
 // -----------------------------
 
 var
-     i,iMod : Integer ;
+     i : Integer ;
      FramesLost : Integer ;
 begin
 
@@ -4586,11 +4658,14 @@ procedure TRecordFrm.rbEXCShutterOpenClick(Sender: TObject);
 // Open excitation light shutter
 // -----------------------------
 begin
-   //outputdebugString(PChar(format('shutter open click %d',[Numframesdone]))) ;
-   UpdateLightSource ;
-   UpdateLightSourceShutter ;
-//   StopCamera ;
-//   StartCamera ;
+   if MainFrm.Recording then begin
+      UpdateLightSource ;
+      UpdateLightSourceShutter ;
+      end
+   else begin
+      StopCamera ;
+      StartCamera ;
+      end ;
    end;
 
 
@@ -4638,7 +4713,8 @@ begin
      if FMoveCaptureRegion then begin
 
         Canvas.Pen.Mode := pmXOR ;
-        Canvas.FrameRect( CaptureRegion ) ;
+        //Canvas.FrameRect( CaptureRegion ) ;
+        DrawCaptureRegion( Canvas, CaptureRegion ) ;
 
         { Move the part of the zoom box which is under the mouse }
         case MoveMode of
@@ -4697,7 +4773,8 @@ begin
                                               0,
                                               Images[0].Height-1 ) ;
 
-        Canvas.FrameRect( CaptureRegion ) ;
+        //Canvas.FrameRect( CaptureRegion ) ;
+        DrawCaptureRegion( Canvas, CaptureRegion ) ;
 
         end
      else begin
@@ -5230,12 +5307,15 @@ procedure TRecordFrm.rbEXCShutterClosedClick(Sender: TObject);
 // Close excitation light shutter
 // -----------------------------
 begin
-   UpdateLightSource ;
-   UpdateLightSourceShutter ;
-
-    //StopCamera ;
-    //StartCamera ;
-    end;
+   if MainFrm.Recording then begin
+      UpdateLightSource ;
+      UpdateLightSourceShutter ;
+      end
+   else begin
+      StopCamera ;
+      StartCamera ;
+      end ;
+   end ;
 
 
 procedure TRecordFrm.edMarkerKeyPress(Sender: TObject; var Key: Char);
