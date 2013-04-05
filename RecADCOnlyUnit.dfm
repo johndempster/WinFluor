@@ -107,6 +107,7 @@ object RecADCOnlyFrm: TRecADCOnlyFrm
         Font.Style = [fsBold]
         ParentFont = False
         TabOrder = 3
+        OnClick = ckRecordADCSignalsOnlyClick
       end
     end
     object MarkGrp: TGroupBox
