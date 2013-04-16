@@ -785,7 +785,6 @@ begin
      ADCNumScansCumulative := 0 ;
 
      // Erase display
-     ADCNumBlocksDisplayed := 0 ; // So OverlayTraces works correctly
      scADCDisplay.NumPoints := 0 ;
      scADCDisplay.Invalidate ;
 
