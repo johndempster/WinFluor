@@ -1,6 +1,6 @@
 object PhotoStimFrm: TPhotoStimFrm
-  Left = 293
-  Top = 284
+  Left = 513
+  Top = 356
   Width = 934
   Height = 604
   Caption = 'Edit Photo-Stimulus'

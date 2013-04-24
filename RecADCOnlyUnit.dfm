@@ -1,6 +1,6 @@
 object RecADCOnlyFrm: TRecADCOnlyFrm
-  Left = 944
-  Top = 230
+  Left = 639
+  Top = 8
   Width = 600
   Height = 897
   Caption = 'BioRad LaserSharp Image Capture'
@@ -702,7 +702,7 @@ object RecADCOnlyFrm: TRecADCOnlyFrm
         Scale = 1.000000000000000000
         Units = 's'
         NumberFormat = '%.4g'
-        LoLimit = 1.000000000000000000
+        LoLimit = 0.100000001490116100
         HiLimit = 2000.000000000000000000
       end
       object rbTDisplayUnitMins: TRadioButton

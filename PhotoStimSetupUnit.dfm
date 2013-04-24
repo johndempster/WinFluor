@@ -1,6 +1,6 @@
 object PhotoStimSetupFrm: TPhotoStimSetupFrm
-  Left = 425
-  Top = 298
+  Left = 716
+  Top = 422
   BorderStyle = bsDialog
   Caption = 'Photolysis Attenuation Setup'
   ClientHeight = 417
