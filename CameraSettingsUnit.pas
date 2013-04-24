@@ -26,6 +26,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure bOKClick(Sender: TObject);
+    procedure bCancelClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -89,5 +90,10 @@ begin
     close ;
 
     end;
+
+procedure TCameraSettingsFrm.bCancelClick(Sender: TObject);
+begin
+  Close;
+end;
 
 end.

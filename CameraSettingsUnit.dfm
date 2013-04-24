@@ -1,6 +1,6 @@
 object CameraSettingsFrm: TCameraSettingsFrm
-  Left = 609
-  Top = 206
+  Left = 885
+  Top = 785
   Width = 351
   Height = 158
   Caption = 'Camera Settings'
@@ -118,6 +118,7 @@ object CameraSettingsFrm: TCameraSettingsFrm
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 2
+    OnClick = bCancelClick
   end
   object SpecialGrp: TGroupBox
     Left = 176
