@@ -18,6 +18,10 @@ unit RecADCOnlyUnit;
 // 23.01.09 .... Nicholas Schwarz's version
 // 11.03.08 JD .. Digital trigger output outputs now supported with M series cards
 // 04.10.09 NS .. Added third DAC channel, Vout2
+// 19.11.12 DE Modified FormActivate so that if no new file has been opened,
+//          the Record form will auotmatically open the next default file
+//          (feature request from M. Day)
+//
 // 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
 // 24.04.13 JD .. Real time display sweep now correctly synchronised to incoming signal
 //                by using ADCMaxBlocksDisplayed rather than scADCDisplay.Maxpoints to detect end of sweep
@@ -1938,6 +1942,7 @@ procedure TRecADCOnlyFrm.FormActivate(Sender: TObject);
 // ---------------------------
 var
     i : Integer ;
+    NewFile : String;
 begin
 
      // Stop seal test (if it is running)
@@ -1946,6 +1951,19 @@ begin
             TSealTestFrm(MainFrm.MDIChildren[i]).StopSealTest ;
             end ;
          end ;
+
+     // If no new file is ready for writing, open a default one
+     if (MainFrm.IDRFile.ADCNumScansInFile > 0) or
+        (not MainFrm.IDRFile.Open) then
+     begin
+       MainFrm.mnCloseFile.Click;
+       NewFile := MainFrm.CreateIndexedFileName(MainFrm.IDRFile.FileName);
+       NewFile := ChangeFileExt(NewFile, '.'+DataFileExtension);
+       MainFrm.IDRFile.CreateNewFile(NewFile);
+       LogFrm.AddLine('New file created: ' + MainFrm.IDRFile.FileName);
+       MainFrm.Caption := 'WinFluor : ' + MainFrm.IDRFile.FileName;
+       MainFrm.UpdateRecentFilesList;
+     end;
 
      if not LabIO.ADCActive[ADCDevice] then begin
         NewDisplaySetup ;
