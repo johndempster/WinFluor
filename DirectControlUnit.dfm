@@ -2,7 +2,7 @@ object DirectControlFrm: TDirectControlFrm
   Left = 668
   Top = 42
   Width = 436
-  Height = 822
+  Height = 845
   Caption = 'Device Control Outputs (Direct Control)'
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -1112,7 +1112,7 @@ object DirectControlFrm: TDirectControlFrm
     Left = 0
     Top = 741
     Width = 428
-    Height = 54
+    Height = 77
     Align = alClient
     Caption = ' Camera Trigger Output '
     TabOrder = 4
