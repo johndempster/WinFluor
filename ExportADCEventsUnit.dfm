@@ -3,7 +3,7 @@ object ExportEventsFrm: TExportEventsFrm
   Top = 136
   BorderStyle = bsDialog
   Caption = 'Export Events'
-  ClientHeight = 183
+  ClientHeight = 199
   ClientWidth = 483
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

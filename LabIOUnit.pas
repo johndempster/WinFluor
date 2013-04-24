@@ -37,6 +37,9 @@ unit LabIOUnit;
 //                  Strings converted to ANSISTring, Char to ANSIChar
 // 03.04.13 JD .... NIDAQMX_MemoryToDIG() Digital outputs now clocked by digital sample clock
 //                  when no D/A channels in use ion timing device
+// 23.04.13 JD .... Bug fix in NIDAQMX_MemoryToDAC() Data written to DAC from internal IOBuf
+//                  not DACBuf. Fixes access violation when startadc called twice in RecADCOnlyUnit.pas
+//                  Similar change to NIDAQMX_MemoryToDIG()
 
 interface
 
@@ -1784,8 +1787,10 @@ begin
      else begin
         NumPointsInBuffer := nPoints ;
         SampleMode := DAQmx_Val_FiniteSamps ;
-        CheckError( DAQmxCfgOutputBuffer ( DACTask[Device], NumPointsInBuffer )) ;
+
         end ;
+
+     CheckError( DAQmxCfgOutputBuffer ( DACTask[Device], NumPointsInBuffer )) ;
 
      // Set timing
      UpdateRate := 1.0 / UpdateInterval ;
@@ -1825,7 +1830,7 @@ begin
                      False,
                      DefaultTimeOut,
                      DAQmx_Val_GroupByScanNumber,
-                     @DACBuf,
+                     @IOBuf^,
                      NumSamplesWritten,
                      Nil
                      )) ;
@@ -2074,6 +2079,8 @@ var
     PortList : ANSIString ;
     ClockSource : ANSIString ;
     NumSamplesToWrite,NumPointsInBuffer,NumSamplesWritten : Integer ;
+    i,iFrom,iTo,nSource,nCopy,EndOffset : Integer ;
+    IOBuf : PBig32bitArray ;
 begin
      Result := False ;
      if (Device < 1) or (Device > NumDevices) then Exit ;
@@ -2109,7 +2116,7 @@ begin
         end ;
 
      // Configure buffer size
-     NumPointsInBuffer := round(2./UpdateInterval) ;
+     NumPointsInBuffer := round(2.0/UpdateInterval) ;
      CheckError( DAQmxCfgOutputBuffer ( DIGTask[Device], NumPointsInBuffer )) ;
 
      // Set digital output timing
@@ -2123,29 +2130,35 @@ begin
      // Disable buffer regeneration, so waveform update is possible
      CheckError( DAQmxSetWriteRegenMode( DIGTask[Device], DAQmx_Val_DoNotAllowRegen ));
 
+     // Copy into output buffer
+     nCopy := NumPointsInBuffer ;
+     nSource := nPoints ;
+     if CircularBufferMode then EndOffset := nSource
+                           else EndOffset := 1 ;
+     iFrom := 0 ;
+     GetMem(IOBuf,nCopy*4) ;
+     for iTo := 0 to nCopy-1 do begin
+         IOBuf^[iTo] := DigBuf[iFrom] ;
+         Inc(iFrom) ;
+         if iFrom >= nSource then iFrom := iFrom - EndOffset
+        end ;
+
      // Write data to buffer
-     NumSamplesToWrite := NumPointsInBuffer ;
      DIG[Device].EndOfBuf := nPoints-1 ;
      DIG[Device].NumChannels := 1 ;
      DIG[Device].Buf := @DIGBuf ;
      DIG[Device].CircularBuffer := CircularBufferMode ;
-     DIG[Device].Pointer := 0 ;
-     while (NumSamplesToWrite > 0) do begin
-        CheckError( DAQmxWriteDigitalU32( DIGTask[Device],
-                                          Min(NumSamplesToWrite,nPoints),
-                                          False,
-                                          DefaultTimeOut,
-                                          DAQmx_Val_GroupByScanNumber ,
-                                          @DigBuf,
-                                          NumSamplesWritten,
-                                          Nil)) ;
+     DIG[Device].Pointer := iFrom ;
+     CheckError( DAQmxWriteDigitalU32( DIGTask[Device],
+                                       NumPointsInBuffer,
+                                       False,
+                                       DefaultTimeOut,
+                                       DAQmx_Val_GroupByScanNumber ,
+                                       @IOBuf^,
+                                       NumSamplesWritten,
+                                       Nil)) ;
 
-        DIG[Device].Pointer := DIG[Device].Pointer + NumSamplesWritten ;
-         if DIG[Device].Pointer > DIG[Device].EndOfBuf then
-            DIG[Device].Pointer := DIG[Device].Pointer - nPoints ;
-         NumSamplesToWrite := NumSamplesToWrite - NumSamplesWritten ;
-
-        end ;
+     FreeMem(IOBuf) ;
 
      // Start DIG task
      CheckError( DAQmxStartTask(DIGTask[Device])) ;

@@ -129,7 +129,7 @@ object SetupFrm: TSetupFrm
     Top = 8
     Width = 473
     Height = 393
-    ActivePage = ZStageTab
+    ActivePage = CameraTab
     TabOrder = 3
     object CameraTab: TTabSheet
       Caption = 'Camera'

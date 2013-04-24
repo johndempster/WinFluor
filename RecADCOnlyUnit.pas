@@ -22,6 +22,11 @@ unit RecADCOnlyUnit;
 //          the Record form will auotmatically open the next default file
 //          (feature request from M. Day)
 //
+// 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
+// 24.04.13 JD .. Real time display sweep now correctly synchronised to incoming signal
+//                by using ADCMaxBlocksDisplayed rather than scADCDisplay.Maxpoints to detect end of sweep
+//                Single stimulus D/A buffer padding increased from 1s to 2s to prevent
+//                stimulus repetition due to 2 second internal NIDAQmx buffering
 
 interface
 
@@ -190,8 +195,9 @@ type
     ADCBlockCount : Integer ;
     ADCEmptyPointer : Integer ;
     ADCDispPointer : Integer ;
-    ADCOldestScan : Integer ;               //
+    ADCOldestScan : Integer ;               // Index of oldest scan processed
     ADCLatestScan : Integer ;               // Index of latest available scan
+    ADCStartDisplayScan : Integer ;         // Index of scan at start of current display
     ADCyMin : Array[0..MaxADCChannels-1] of Integer ;
     ADCyMax : Array[0..MaxADCChannels-1] of Integer ;
     ADCyMinAt : Array[0..MaxADCChannels-1] of Integer ;
@@ -216,7 +222,10 @@ type
     procedure UpdateCameraStartWaveform ;
     procedure UpdateCameraStartWaveformDAC ;
     procedure UpdateCameraStartWaveformDIG ;
-    procedure UpdateStimulusWaveforms( StimulusEnabled : Boolean )   ;
+    procedure UpdateStimulusWaveforms(
+              StimulusEnabled : Boolean ;  // TRUE = Generate stimulus
+              InitialiseBuffer : Boolean   // TRUE = initialise LABIO.DAC
+              )   ;
     procedure UpdatePhotoStimulus( StimulusEnabled : Boolean )   ;
     procedure UpdatePlaybackWaveform( StimulusEnabled : Boolean )   ;    
     procedure UpdateHoldingVoltage ;
@@ -246,6 +255,7 @@ type
              VMax : Single;                            // Maximum voltage
              Amplitude : Single) : Single ;            // Desired amplitude in mW
 
+    procedure Wait( Delay : Single ) ;
   public
     { Public declarations }
     AutoRecordingMode : Boolean ;
@@ -280,7 +290,7 @@ implementation
 
 uses Main, AmpModule, ViewUnit, SealTest , LogUnit, StimModule, UltimaUnit,
      DynamicProtocolSetupUnit, PhotoStimModule, PlaybackSetupUnit,
-     PlaybackStimModule;
+     PlaybackStimModule, mmsystem ;
 
 {$R *.dfm}
 
@@ -380,8 +390,9 @@ begin
 
      // Start acquiring samples
      ADCBuf := Nil ;
-     // D/A waveform buffers
+     // D/A & dig waveform buffers
      for i := 0 to High(DACBufs) do DACBufs[i] := Nil ;
+     for i := 0 to High(DIGBufs) do DIGBufs[i] := Nil ;
 
      // Initialise A/D displays
      scADCDisplay.MaxADCValue := LabIO.ADCMaxValue[ADCDevice] ;
@@ -479,6 +490,7 @@ begin
      // Stop A/D and D/A if it is running
      for Device := 1 to LabIO.NumDevices do LabIO.StopDAC(Device) ;
      LabIO.StopADC(ADCDevice) ;
+     Wait(0.1) ;
 
      // Update private variables
      ADCMaxValue := LabIO.ADCMaxValue[ADCDevice] ;
@@ -568,7 +580,7 @@ begin
            // Increase buffer size for single stimulus (to allow erasure of stimulus)
            if Stimulator.Prog.NumRepeats <= 1 then begin
               ClearStimulusAfterScanNum := DACNumScansInBuffer ;
-              DACNumScansInBuffer := DACNumScansInBuffer + Round(1.0/MainFrm.ADCScanInterval) ;
+              DACNumScansInBuffer := DACNumScansInBuffer + Round(2.0/MainFrm.ADCScanInterval) ;
               SingleStimulusInProgress := True ;
               end ;
            end ;
@@ -640,7 +652,7 @@ begin
                DACNumScansInBuffer := DACNumScansInBuffer + Round(1.0/MainFrm.ADCScanInterval) ;
                SingleStimulusInProgress := True ;
              end;
-             
+
           end;
           end;
           // Set number of scans in buffer to greater of first protocol or dynamic protocol
@@ -670,7 +682,7 @@ begin
         DACNumFramesPerBuf := 1 ;
         end ;
 
-     // Allocate D/A waveform buffers
+     // Allocate D/A & digital waveform buffers
      for Device := 1 to LabIO.NumDevices do begin
          if DACBufs[Device] <> Nil then FreeMem(DACBufs[Device]) ;
          if DIGBufs[Device] <> Nil then FreeMem(DIGBufs[Device]) ;
@@ -697,7 +709,7 @@ begin
      begin
 
         // Update comand voltage and digital stimulus waveform
-        UpdateStimulusWaveforms( false ) ;
+        UpdateStimulusWaveforms( false, true ) ;
 
         // Update command voltage for playback waveform
         UpdatePlaybackWaveform( StimulusRequired );
@@ -707,8 +719,8 @@ begin
      begin
 
         // Update comand voltage and digital stimulus waveform
-        UpdateStimulusWaveforms( StimulusRequired ) ;
-        
+        UpdateStimulusWaveforms( StimulusRequired, true ) ;
+
      end;
 
      // Update photo stimulus waveform
@@ -1162,7 +1174,8 @@ end;
 
 
 procedure TRecADCOnlyFrm.UpdateStimulusWaveforms(
-          StimulusEnabled : Boolean
+          StimulusEnabled : Boolean ;  // TRUE = Generate stimulus
+          InitialiseBuffer : Boolean   // TRUE = initialise LABIO.DAC
           )   ;
 // -----------------------------------------------------------------------------
 // Create analogue & digital D/A output waveform for patch clamp command voltage
@@ -1270,7 +1283,7 @@ begin
 
      // Create stimulus if required
      if  StimulusEnabled and (cbStimProgram.ItemIndex > 0) then
-         Stimulator.CreateWaveform( DACBufs,DigBufs,DACNumScansInBuffer, False ) ;
+         Stimulator.CreateWaveform( DACBufs,DigBufs,DACNumScansInBuffer, InitialiseBuffer ) ;
 
      end ;
 
@@ -1378,7 +1391,7 @@ begin
         // New holding voltage
         if VChan = 0 then MainFrm.VCommand[VChan].HoldingVoltage := edVHold0.Value
         else if VChan = 1 then MainFrm.VCommand[VChan].HoldingVoltage := edVHold1.Value
-        else if VChan = 2 then MainFrm.VCommand[VChan].HoldingVoltage := edVHold2.Value ;        
+        else if VChan = 2 then MainFrm.VCommand[VChan].HoldingVoltage := edVHold2.Value ;
         NewDACValue := Round(MainFrm.VCommand[VChan].HoldingVoltage*DACScale) ;
 
         j := DACChannel ;
@@ -1390,7 +1403,7 @@ begin
         end ;
 
      // A/D restart needed with NIDAQ-MX to force DAC updates
-     if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
+     //if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
 
      end ;
 
@@ -1495,7 +1508,10 @@ begin
        ADCBlockCount := ADCNumScansPerBlock ;
        ADCDispPointer := 0 ;
        ADCNumBlocksDisplayed := 0 ;
+       ADCStartDisplayScan := ADCOldestScan ;
        ResetDisplays := False ;
+
+
        end ;
 
      // Load latest A/D samples into ADCBuf
@@ -1655,11 +1671,11 @@ begin
               // by dynamic protocol
               if MainFrm.DynamicProtocol.EPRestart then
               begin
-                UpdateStimulusWaveforms(True);
+                UpdateStimulusWaveforms(True,false);
               end
               else
               begin
-                UpdateStimulusWaveforms(False);
+                UpdateStimulusWaveforms(False,false);
               end;
 
               // Update photo-stimulus waveforms if required
@@ -1725,14 +1741,16 @@ begin
           end;
 
         end;  // End of dynamic protocol
-               
+
 
         // Increment pointer to next available scan
         ADCOldestScan := ADCOldestScan + MainFrm.ADCNumChannels ;
+        // Keep within cyclic buffer
         if ADCOldestScan >= ADCNumSamplesInBuffer then
            ADCOldestScan := ADCOldestScan - ADCNumSamplesInBuffer ;
-        if (ADCOldestScan = ADCLatestScan) or
-           (ADCNumBlocksDisplayed >= scADCDisplay.MaxPoints) then Done := True ;
+        // Terminate if all points processed or at end of display   
+        if ADCOldestScan = ADCLatestScan then Done := True ;
+        if ADCNumBlocksDisplayed >= ADCMaxBlocksDisplayed then Done := True ;
 
         end ;
 
@@ -1834,7 +1852,7 @@ begin
     if SingleStimulusInProgress then begin
        if ADCNumScansCumulative > ClearStimulusAfterScanNum then begin
           //ClearStimulusPulses ;
-          UpdateStimulusWaveforms( False ) ;
+          UpdateStimulusWaveforms( False, false ) ;
           UpdatePhotoStimulus( False ) ;
           ClearStimulusAfterScanNum := High(ClearStimulusAfterScanNum) ;
           StimulusRequired := False ;
@@ -1846,6 +1864,10 @@ begin
           VHoldGrp.Enabled := True ;
           end ;
        end ;
+
+     // Update D/A output buffer
+     LabIO.UpdateDACOutputBuffer ;
+     //LabIO.UpdateDIGOutputBuffer ;
 
     // Update A/D signal display
     UpdateADCDisplay ;
@@ -1992,7 +2014,9 @@ begin
      if ADCBuf <> Nil then FreeMem(ADCBuf) ;
      for Device := 1 to LabIO.NumDevices do begin
          if DACBufs[Device] <> Nil then FreeMem(DACBufs[Device]) ;
+         DACBufs[Device] := Nil ;
          if DIGBufs[Device] <> Nil then FreeMem(DIGBufs[Device]) ;
+         DIGBufs[Device] := Nil ;
          end ;
 
      // Save visibility state for each channel
@@ -2030,18 +2054,20 @@ procedure TRecADCOnlyFrm.bStopStimulusClick(Sender: TObject);
 // ---------------------
 // Stop stimulus program
 // ---------------------
+var
+    Device : Integer ;
 begin
 
      StimulusRequired := False ;
 
      // Set voltage and digital stimulus channels to default (off) settings
-     UpdateStimulusWaveforms( StimulusRequired ) ;
+     UpdateStimulusWaveforms( StimulusRequired, false ) ;
 
      // Update photo-stimulus
      UpdatePhotoStimulus( StimulusRequired and ckPhotoStimEnabled.Checked ) ;
 
      // A/D restart needed with NIDAQ-MX to force DAC updates
-     if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
+     //if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
 
      bStartStimulus.Enabled := True ;
      bStopStimulus.Enabled := False ;
@@ -2071,9 +2097,9 @@ begin
      if cbStimProgram.ItemIndex > 0 then begin
         // Set voltage and digital stimulus channels to default (off) settings
         StimulusRequired := False ;
-        UpdateStimulusWaveforms( StimulusRequired ) ;
+        UpdateStimulusWaveforms( StimulusRequired, false ) ;
         // A/D restart needed with NIDAQ-MX to force DAC updates
-        if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
+        //if LABIO.NIDAQAPI = NIDAQMX then StartADC ;
         bStopStimulus.Enabled := False ;
         bStartStimulus.Enabled := True ;
         if not ckPlaybackEnabled.Checked then
@@ -2694,6 +2720,7 @@ procedure TRecADCOnlyFrm.edRecordingTimeKeyPress(Sender: TObject;
 begin
      if Key = #13 then begin
         MainFrm.ADCRecordingTime := edRecordingTime.Value ;
+        startadc ;
         end ;
      end;
 
@@ -2783,5 +2810,21 @@ begin
     Mainfrm.PProtDirectory + cbPhotoStimProgram.Text + '.ppr';
 
 end;
+
+procedure TRecADCOnlyFrm.Wait( Delay : Single ) ;
+var
+  T : Integer ;
+  TExit : Integer ;
+begin
+    T := TimeGetTime ;
+    TExit := T + Round(Delay*1E3) ;
+    while T < TExit do begin
+       T := TimeGetTime ;
+       Application.ProcessMessages ;
+       end ;
+    end ;
+
+
+
 
 end.
