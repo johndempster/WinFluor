@@ -48,7 +48,8 @@ unit Wavgen;
               Digital waveforms can now be erased by dragging blank TTL waveform
               on to protocol.
   09.09.10 .. JD Included VHold in calculation of upper and lower limits of
-                 stimulus amplitude display            
+                 stimulus amplitude display
+  24.04.13 .. JD SelectDirectory() dialog now used to select protocol folder
   =====================================================================}
 interface
 
@@ -2101,21 +2102,16 @@ begin
     end;
 
 procedure TWavGenFrm.bSetSubFolderClick(Sender: TObject);
-// -----------------------------
+// ---------------------------------
 //  Set voltage protocol file folder
-// -----------------------------
+// ---------------------------------
 begin
-    //OpenDialog.options := [] ;
-     OpenDialog.FileName := '*' ;
-     OpenDialog.InitialDir := MainFrm.VProtDirectory ;
-     OpenDialog.Title := 'Select protocol file folder' ;
-     if OpenDialog.execute then begin
-        MainFrm.VProtDirectory := ExtractFilePath( OpenDialog.FileName ) ;
-        edFolder.Text := MainFrm.VProtDirectory ;
-        end ;
 
-     end ;
+    SelectDirectory(MainFrm.VProtDirectory, [sdAllowCreate, sdPerformCreate, sdPrompt],0) ;
+    MainFrm.VProtDirectory := MainFrm.VProtDirectory + '\' ;
+    edFolder.Text := MainFrm.VProtDirectory ;
 
+    end ;
 
 
 procedure TWavGenFrm.DigNoneMouseDown(Sender: TObject;
