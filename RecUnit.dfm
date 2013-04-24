@@ -1104,7 +1104,7 @@ object RecordFrm: TRecordFrm
         Top = 16
         Width = 170
         Height = 230
-        ActivePage = ExcitationLightTab
+        ActivePage = StimulatorTab
         MultiLine = True
         TabOrder = 0
         object ExcitationLightTab: TTabSheet
@@ -1197,7 +1197,7 @@ object RecordFrm: TRecordFrm
               Width = 81
               Height = 22
               Hint = 'Selected single excitation wavelength'
-              ItemHeight = 14
+              ItemHeight = 0
               TabOrder = 2
               Text = 'cbWavelength'
               OnChange = cbWavelengthChange
@@ -1224,7 +1224,7 @@ object RecordFrm: TRecordFrm
               Width = 124
               Height = 22
               Hint = 'Selected single excitation wavelength'
-              ItemHeight = 14
+              ItemHeight = 0
               TabOrder = 4
               Text = 'cbWavelength'
               OnChange = cbSequenceChange
@@ -1277,7 +1277,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbStimProgramChange
@@ -1699,6 +1699,8 @@ object RecordFrm: TRecordFrm
     FrameWidth = 0
     FrameHeight = 0
     PixelDepth = 1
+    NumZSections = 1
+    ZSpacing = 1.000000000000000000
     IntensityScale = 1.000000000000000000
     XResolution = 1.000000000000000000
     ADCNumScansInFile = 0
@@ -1744,6 +1746,8 @@ object RecordFrm: TRecordFrm
     FrameWidth = 0
     FrameHeight = 0
     PixelDepth = 1
+    NumZSections = 1
+    ZSpacing = 1.000000000000000000
     IntensityScale = 1.000000000000000000
     XResolution = 1.000000000000000000
     ADCNumScansInFile = 0

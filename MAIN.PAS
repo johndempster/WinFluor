@@ -126,6 +126,11 @@ unit Main;
 //                 when recording starts and off at which it stops.
 // 28.1.13 V3.4.4 Piezo Z focus and Z stack control added (ZStageUnit.pas)
 // 03.04.13 V3.4.5 Imaging area selection rectangle now made more visible by small squares at corners and middle.
+// 24.04.13 V3.4.6 LabIOUnit.pas Bug fix in NIDAQMX_MemoryToDAC() fixing access violations in RecADCOnlyUnit.pas
+//                 when A/D restarted.
+//                 RecADCOnlyUnit.pas: Real time display sweep now correctly synchronised to incoming signal
+//                 FileIOUnit.pas: Default protocol folder now selected in folder in INI file not found
+//                 wavgen.pas: SelectDirectory() dialog now used to set voltage protocol folder
 
 interface
 

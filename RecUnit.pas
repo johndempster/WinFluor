@@ -2582,10 +2582,6 @@ begin
         Stimulator.CreateWaveform( DACBufs,DigBufs,NumDACPointsPerCycle, InitialiseBuffer ) ;
         end ;
 
-
-//         ClearStimulusAfterScanNum := Round(Stimulator.ProtocolDuration/MainFrm.ADCScanInterval) ;
-//     else ClearStimulusAfterScanNum := High(ClearStimulusAfterScanNum) ;
-
      end ;
 
 

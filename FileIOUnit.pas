@@ -44,6 +44,7 @@ unit FileIOUnit;
 // 23.07.12 .... JD 'STARTSTIMONREC=', MainFrm.StartStimOnRecord added
 // 04.12.12 .... JD 'EXCONREC=', MainFrm.ExcitationOnWhenRecording added
 // 29.01.13 .... JD Z stage settings added to INI file ZStage.SaveSettings(), ZStage.ReadSettings();
+// 24.04.13 .... JD If VProtDirectory in INI file does not exist, use default directory (\winfluor\vprot
 
 interface
 
@@ -794,6 +795,10 @@ begin
      ReadString( Header, 'DDIR=', MainFrm.DataDirectory ) ;
 
      ReadString( Header, 'VPDIR=', MainFrm.VProtDirectory ) ;
+     // Use default if voltage protocol directory does not exist
+     if not DirectoryExists(MainFrm.VProtDirectory) then begin
+        MainFrm.VProtDirectory := MainFrm.DefVProtDirectory ;
+        end ;
 
      for i := 0 to High(MainFrm.RecentFiles) do
          ReadString(Header,format('FILE%d=',[i]),MainFrm.RecentFiles[i]) ;
