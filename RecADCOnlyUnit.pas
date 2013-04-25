@@ -18,6 +18,9 @@ unit RecADCOnlyUnit;
 // 23.01.09 .... Nicholas Schwarz's version
 // 11.03.08 JD .. Digital trigger output outputs now supported with M series cards
 // 04.10.09 NS .. Added third DAC channel, Vout2
+// 15.11.12 DE Added MainFrm.LastRecADCOnly* variables to allow Record Signals
+//          window to remember its size and location after being dismissed
+//          (requested by M. Day)
 // 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
 // 24.04.13 JD .. Real time display sweep now correctly synchronised to incoming signal
 //                by using ADCMaxBlocksDisplayed rather than scADCDisplay.Maxpoints to detect end of sweep
@@ -311,7 +314,6 @@ begin
      // Set form at top left of MDI window
      Top := 20 ;
      Left := 20 ;
-     ClientHeight := ControlsGrp.Height + ControlsGrp.Top + 10 ;
 
      // Disable A/D input channels if no ADC
      if not MainFrm.IOResourceAvailable(MainFrm.IOConfig.ADCIn) then begin
@@ -327,13 +329,25 @@ begin
      if MainFrm.CameraType = BioRad then begin
         Caption := 'BioRad Radiance/1024 Image Capture' ;
         TriggerGrp.Visible := false ;
+        ImageCaptureGrp.Height := ImageCaptureGrp.Height - TriggerGrp.Height - 30;
+        MarkGrp.Top := ImageCaptureGrp.Top + ImageCaptureGrp.Height - 7;
+        ReadoutGrp.Top := MarkGrp.Top + MarkGrp.Height - 7;
+        ControlsGrp.Height := ControlsGrp.Height - TriggerGrp.Height;
         ModeGrp.Visible := True ;
         end
      else if MainFrm.CameraType = UltimaLSM then begin
         Caption := 'Prairie Technology Ultima Image Capture' ;
         TriggerGrp.Visible := False ;
+        ImageCaptureGrp.Height := ImageCaptureGrp.Height - TriggerGrp.Height
+                                - ModeGrp.Height - 30;
+        MarkGrp.Top := ImageCaptureGrp.Top + ImageCaptureGrp.Height - 7;
+        ReadoutGrp.Top := MarkGrp.Top + MarkGrp.Height - 7;
+        ControlsGrp.Height := ControlsGrp.Height - TriggerGrp.Height
+                           - ModeGrp.Height - 8;
         ModeGrp.Visible := False ;
         end ;
+
+     ClientHeight := ControlsGrp.Height + ControlsGrp.Top + 10 ;
 
      // Duration of analogue signals display window
      edTDisplay.Value := MainFrm.ADCDisplayWindow ;
@@ -2005,6 +2019,11 @@ begin
      for ch := 0 to MainFrm.ADCNumChannels-1 do begin
          MainFrm.ADCChannelRecADCOnlyUnitVisible[ch] := scADCDisplay.ChanVisible[ch];
      end;
+
+     MainFrm.LastRecADCOnlyWidth := Width;
+     MainFrm.LastRecADCOnlyHeight := Height;
+     MainFrm.LastRecADCOnlyTop := Top;
+     MainFrm.LastRecADCOnlyLeft := Left;
 
      // Request destruction of form
      Action := caFree ;
