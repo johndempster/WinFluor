@@ -18,16 +18,13 @@ unit RecADCOnlyUnit;
 // 23.01.09 .... Nicholas Schwarz's version
 // 11.03.08 JD .. Digital trigger output outputs now supported with M series cards
 // 04.10.09 NS .. Added third DAC channel, Vout2
-<<<<<<< HEAD
 // 15.11.12 DE Added MainFrm.LastRecADCOnly* variables to allow Record Signals
 //          window to remember its size and location after being dismissed
 //          (requested by M. Day)
-=======
 // 19.11.12 DE Modified FormActivate so that if no new file has been opened,
 //          the Record form will auotmatically open the next default file
 //          (feature request from M. Day)
 //
->>>>>>> 50f174fab41cbeb190df7079d7db6ab39e9f216d
 // 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
 // 24.04.13 JD .. Real time display sweep now correctly synchronised to incoming signal
 //                by using ADCMaxBlocksDisplayed rather than scADCDisplay.Maxpoints to detect end of sweep
