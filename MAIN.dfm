@@ -1,11 +1,11 @@
 object MainFrm: TMainFrm
-  Left = 510
-  Top = 152
+  Left = 489
+  Top = 49
   Width = 1004
   Height = 725
   Caption = 
-    'WinFluor : Fluorescence Image Capture & Analysis Program V3.4.5 ' +
-    '03-04-13'
+    'WinFluor : Fluorescence Image Capture & Analysis Program V3.4.6 ' +
+    '24-04-13'
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
@@ -23,7 +23,7 @@ object MainFrm: TMainFrm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 652
+    Top = 660
     Width = 996
     Height = 19
     AutoHint = True
