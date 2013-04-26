@@ -509,7 +509,7 @@ begin
      // Stop A/D and D/A if it is running
      for Device := 1 to LabIO.NumDevices do LabIO.StopDAC(Device) ;
      LabIO.StopADC(ADCDevice) ;
-     Wait(0.1) ;
+     // Wait(0.1) ;
 
      // Update private variables
      ADCMaxValue := LabIO.ADCMaxValue[ADCDevice] ;
