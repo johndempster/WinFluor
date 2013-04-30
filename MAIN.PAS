@@ -635,6 +635,8 @@ type
     LastRecADCOnlyTop : Integer;
     LastRecADCOnlyLeft : Integer;
 
+    OverLayTraces: Boolean;
+
     procedure SetPalette( BitMap : TBitMap ; PaletteType : TPaletteType ) ;
 
     procedure UpdateLUT( iFrameType : Integer ;
@@ -1092,6 +1094,8 @@ begin
     LastRecADCOnlyHeight := -1;
     LastRecADCOnlyTop := -1;
     LastRecADCOnlyLeft := -1;
+
+    OverLayTraces := False;
 
     end;
 
