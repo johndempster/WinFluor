@@ -27,6 +27,7 @@ unit TimeCourseUnit;
 // 30.08.10 Fluorescence display type now selected using drop-down list
 //          FP divide by zero error when Df/F0 plotted with F0=0 fixed.
 // 25.08.12 Line is no longer truncated when more than 10000 frames/lines in plot
+// 31.12.12 Fix issue with plotting different length fluorescence and ADC channels
 //
 interface
 
@@ -783,7 +784,10 @@ begin
     // Initialise counters
     BlockCount := NumLinesPerBlock ;
     NumPoints := 0 ;
-    tStep := (TInterval*TScale*NumLinesPerBlock)/NumPointsPerBlock ;
+    // tStep := (TInterval*TScale*NumLinesPerBlock)/NumPointsPerBlock ;
+    // The NumPoints correction factors seem to be appropriate for ADC channel
+    // traces, rather than the line scan.
+    tStep := TInterval*TScale;
     ReportInterval := Max((EndAtLine - StartAtLine) div 100,1);
     StopPlot := False ;
     for L := StartAtLine to EndAtLine do begin
@@ -937,7 +941,10 @@ begin
                           + ' (' + MainFrm.IDRFile.ADCChannel[iChan].ADCUnits + ')' ;
 
      StartScan := Round( ((StartAtFrame-1)*TInterval)/dt) ;
-     EndScan := Round( (EndAtFrame*TInterval)/dt ) ;
+     // EndScan := Round( (EndAtFrame*TInterval)/dt ) ;
+     // Allow plotting of full ADC trace even if longer than line scan
+     EndScan := Max(Round((EndAtFrame*TInterval)/dt ),
+                    MainFrm.IDRFile.ADCNumScansInFile);
 
      // No. of multi-channel scans to be displayed
      NumScans := EndScan - StartScan + 1 ;
