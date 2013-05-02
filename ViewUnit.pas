@@ -67,6 +67,8 @@ unit ViewUnit;
 // 17.09.12 JD Contrast Auto adjust setting now saved when window closed
 // 26.11.12 JD Zoom combo box moved to top of image area
 // 28.11.12 JD Contrast adjustment now only uses sample of 2000 pixels in image
+// 02.05.13 JD Upper limit of best contrast now correctly constrained to GreyMax of
+//             of image data file, not grey max of camera
 
 interface
 
@@ -1234,7 +1236,7 @@ begin
        end ;
 
     ZLo := Max(Round(0.9*ZLo),0) ;
-    ZHi := Min(Round(1.1*ZHi),MainFrm.Cam1.GreyLevelMax) ;
+    ZHi := Min(Round(1.1*ZHi),MainFrm.IDRFile.GreyMax) ;
 
     // Update contrast
     if (not ckAutoOptimise.Checked) or

@@ -36,7 +36,8 @@ uses
 const
     EventListFileExt = '.evl' ;
     MaxEvents = 30000 ;
-    MaxDisplayPoints = 1048576 ;
+    // MaxDisplayPoints = 1048576 ;
+    MaxDisplayPoints = 16777216;
     DetFluor = 0 ;
     DetFluorRatio = 1 ;
     ADCChannelLimit = 7 ;
@@ -1495,6 +1496,11 @@ begin
         (scDisplay.VerticalCursors[ADCC1Cursor] > scDisplay.MaxPoints) then
         scDisplay.VerticalCursors[ADCC1Cursor] := scDisplay.MaxPoints - 2 ;
 
+     if AverageMode then
+       scDisplay.XOffset := -(NumADCDisplayScans div 5)
+     else
+       scDisplay.XOffset := iDisplayStart;
+
      scDisplay.Invalidate ;
 
      if not AverageMode then begin
@@ -1597,8 +1603,10 @@ begin
        end ;
     NumDisplayGroups := scDisplay.MaxPoints ;
 
-    StartGroup := Max( EventAtGroup - (NumDisplayGroups div 5),1) ;
-    EndGroup := StartGroup + NumDisplayGroups - 1 ;
+    {StartGroup := Max( EventAtGroup - (NumDisplayGroups div 5),1) ;
+    if not AverageMode then
+      StartGroup := Max(StartGroup, 0);
+    EndGroup := StartGroup + NumDisplayGroups - 1 ;}
 
     // ROI# to be displayed
     iROI := Integer(cbSource.Items.Objects[cbSource.ItemIndex]) ;
@@ -1802,6 +1810,11 @@ begin
     if (scDisplay.VerticalCursors[FLC1Cursor] < 0) or
         (scDisplay.VerticalCursors[FLC1Cursor] > scDisplay.MaxPoints) then
         scDisplay.VerticalCursors[FLC1Cursor] := scDisplay.MaxPoints - 2 ;
+
+    if AverageMode then
+      scDisplay.XOffset := -(NumDisplayGroups div 5)
+    else
+      scDisplay.XOffset := StartGroup;
 
     scDisplay.Invalidate ;
 

@@ -945,6 +945,8 @@ object ViewFrm: TViewFrm
     FrameWidth = 0
     FrameHeight = 0
     PixelDepth = 1
+    NumZSections = 1
+    ZSpacing = 1.000000000000000000
     IntensityScale = 1.000000000000000000
     XResolution = 1.000000000000000000
     ADCNumScansInFile = 0
