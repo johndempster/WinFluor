@@ -32,6 +32,8 @@ unit RecADCOnlyUnit;
 //                by using ADCMaxBlocksDisplayed rather than scADCDisplay.Maxpoints to detect end of sweep
 //                Single stimulus D/A buffer padding increased from 1s to 2s to prevent
 //                stimulus repetition due to 2 second internal NIDAQmx buffering
+// 02.05.13 JD .. Single stimulus D/A buffer padding set to LabIO.InternalBufferDuration + 0.5s a
+//                to prevent stimulus repetition in single stimulus mode.
 
 interface
 
@@ -604,7 +606,7 @@ begin
            // Increase buffer size for single stimulus (to allow erasure of stimulus)
            if Stimulator.Prog.NumRepeats <= 1 then begin
               ClearStimulusAfterScanNum := DACNumScansInBuffer ;
-              DACNumScansInBuffer := DACNumScansInBuffer + Round(2.0/MainFrm.ADCScanInterval) ;
+              DACNumScansInBuffer := DACNumScansInBuffer + Round((LabIO.InternalBufferDuration+0.5)/MainFrm.ADCScanInterval) ;
               SingleStimulusInProgress := True ;
               end ;
            end ;

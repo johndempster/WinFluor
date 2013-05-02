@@ -40,6 +40,7 @@ unit LabIOUnit;
 // 23.04.13 JD .... Bug fix in NIDAQMX_MemoryToDAC() Data written to DAC from internal IOBuf
 //                  not DACBuf. Fixes access violation when startadc called twice in RecADCOnlyUnit.pas
 //                  Similar change to NIDAQMX_MemoryToDIG()
+// 02.05.13 JD .... InternalBufferDuration added defining duration of internal NIDAQmx DAC and digital waveform buffer
 
 interface
 
@@ -337,6 +338,7 @@ type
     ADCMaxSamplingInterval : single ;
 
     DACMinUpdateInterval : Double ;
+    InternalBufferDuration : Double ;             // Duration of time held in internal NIDAQmx buffer
 
     t0 : Integer ;
 
@@ -393,7 +395,7 @@ type
              TimingDevice : SmallInt
              ) : Boolean ;
 
-    procedure UpdateDACOutputBuffer ;             
+    procedure UpdateDACOutputBuffer ;
 
     function StopDAC( Device : SmallInt ) : Boolean ;
 
@@ -512,6 +514,7 @@ begin
     for i := 1 to MaxDevices do ADCVoltageRangeAtX1Gain[i] := 1.0 ;
     for i := 1 to MaxDevices do for j := 0 to MaxDACs-1 do DACOutState[i,j] := 0.0 ;
     NumResources := 0 ;
+    InternalBufferDuration := 2.0 ;
 
     end;
 
@@ -1781,7 +1784,7 @@ begin
 
      // Configure buffer size
      if CircularBufferMode then begin
-        NumPointsInBuffer := round(2./UpdateInterval) ;
+        NumPointsInBuffer := round(InternalBufferDuration/UpdateInterval) ;
         SampleMode := DAQmx_Val_ContSamps ;
         end
      else begin
@@ -2116,7 +2119,7 @@ begin
         end ;
 
      // Configure buffer size
-     NumPointsInBuffer := round(2.0/UpdateInterval) ;
+     NumPointsInBuffer := round(InternalBufferDuration/UpdateInterval) ;
      CheckError( DAQmxCfgOutputBuffer ( DIGTask[Device], NumPointsInBuffer )) ;
 
      // Set digital output timing
