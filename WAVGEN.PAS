@@ -49,6 +49,7 @@ unit Wavgen;
               on to protocol.
   09.09.10 .. JD Included VHold in calculation of upper and lower limits of
                  stimulus amplitude display
+  31.01.13 .. DE Allow existing waveforms to be dragged and dropped
   24.04.13 .. JD SelectDirectory() dialog now used to select protocol folder
   =====================================================================}
 interface
@@ -199,9 +200,13 @@ type
     procedure Prot0DragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure Step0MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure Prot0MouseDown(Sender: TObject; Button: TMouseButton;
+                             Shift: TShiftState; X, Y: Integer);
     procedure Prot0Click(Sender: TObject);
     procedure DigStep0MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure DigProt0MouseDown(Sender: TObject; Button: TMouseButton;
+                                Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
     procedure bNewClick(Sender: TObject);
     procedure TableKeyPress(Sender: TObject; var Key: Char);
@@ -289,6 +294,8 @@ Type
     TCurrentTool = record
                  ToolType : TWaveShape ;
                  Digital : Boolean ;
+                 IsCopy: Boolean; // Copying an existing waveform's parameters
+                 CopyingFrom: Integer; // Tag of element copied from
                  end ;
 
 
@@ -580,18 +587,38 @@ procedure TWavGenFrm.Step0MouseDown(Sender: TObject; Button: TMouseButton;
 begin
      CurrentTool.ToolType := TWaveShape( TImage(Sender).Tag ) ;
              CurrentTool.Digital := False ;
+     CurrentTool.IsCopy := False;
      TIMage(Sender).BeginDrag( False ) ;
      end        ;
 
+procedure TWavGenFrm.Prot0MouseDown(Sender: TObject; Button: TMouseButton;
+                                    Shift: TShiftState; X, Y: Integer);
+begin
+  CurrentTool.ToolType := TWaveShape(Stimulator.Prog.Shape[TImage(Sender).Tag]);
+  CurrentTool.Digital := False;
+  CurrentTool.IsCopy := True;
+  CurrentTool.CopyingFrom := TImage(Sender).Tag;
+  TImage(Sender).BeginDrag(False);
+end;
 
 procedure TWavGenFrm.DigStep0MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
      CurrentTool.ToolType := TWaveShape( TImage(Sender).Tag ) ;
      CurrentTool.Digital := True ;
+     CurrentTool.IsCopy := False;
      TIMage(Sender).BeginDrag( False ) ;
      end;
 
+procedure TWavGenFrm.DigProt0MouseDown(Sender: TObject; Button: TMouseButton;
+                                       Shift: TShiftState; X, Y: Integer);
+begin
+  CurrentTool.ToolType := TWaveShape(Stimulator.Prog.Shape[TImage(Sender).Tag]);
+  CurrentTool.Digital := True;
+  CurrentTool.IsCopy := True;
+  CurrentTool.CopyingFrom := TImage(Sender).Tag;
+  TImage(Sender).BeginDrag(False);
+end;
 
 
 { -----------------------------------------------------------------
@@ -634,17 +661,35 @@ procedure TWavGenFrm.Prot0DragDrop(Sender, Source: TObject; X, Y: Integer);
   ------------------------------------------------------------}
 var
    iTag : Integer ;
+   FromTag: Integer;
 begin
      iTag := TImage(Sender).Tag ;
      if  (not CurrentTool.Digital) then begin
         TIMage(Sender).Picture := TImage(Source).Picture ;
-        Stimulator.Prog.Shape[iTag] := TWaveShape( TImage(Source).Tag ) ;
-        shSelected.Left := TIMage(Sender).Left ;
-        shSelected.Top := TIMage(Sender).Top + TIMage(Sender).Height ;
-        shSelected.Width := TIMage(Sender).Width ;
+        if (CurrentTool.IsCopy) then
+        begin
+          FromTag := CurrentTool.CopyingFrom;
+          Stimulator.Prog.Shape[iTag] := Stimulator.Prog.Shape[FromTag];
+          Stimulator.Prog.Amplitude[iTag] := Stimulator.Prog.Amplitude[FromTag];
+          Stimulator.Prog.Duration[iTag] := Stimulator.Prog.Duration[FromTag];
+          Stimulator.Prog.Increment[iTag] := Stimulator.Prog.Increment[FromTag];
+          Stimulator.Prog.RampStart[iTag] := Stimulator.Prog.RampStart[FromTag];
+          Stimulator.Prog.RampEnd[iTag] := Stimulator.Prog.RampEnd[FromTag];
+          Stimulator.Prog.PulseInterval[iTag] := Stimulator.Prog.PulseInterval[FromTag];
+          Stimulator.Prog.NumPulses[iTag] := Stimulator.Prog.NumPulses[FromTag];
+          Stimulator.Prog.Period[iTag] := Stimulator.Prog.Period[FromTag];
+          Stimulator.Prog.Delay[iTag] := Stimulator.Prog.Delay[FromTag];
+          Stimulator.Prog.Invert[iTag] := Stimulator.Prog.Invert[FromTag];
+        end else
+        begin
+          Stimulator.Prog.Shape[iTag] := TWaveShape( TImage(Source).Tag ) ;
+        end;
         end ;
      SetCursor( False ) ;
-     FillParameterTable(iTag,True) ;
+     FillParameterTable(iTag, not CurrentTool.IsCopy) ;
+     shSelected.Left := TIMage(Sender).Left ;
+     shSelected.Top := TIMage(Sender).Top + TIMage(Sender).Height ;
+     shSelected.Width := TIMage(Sender).Width ;
      Stimulator.Prog.Saved := False ;
      pbDisplay.invalidate ;
      end;
@@ -656,20 +701,39 @@ procedure TWavGenFrm.dig0DragDrop(Sender, Source: TObject; X, Y: Integer);
   ------------------------------------------------------------}
 var
    iTag : Integer ;
+   FromTag: Integer;
 begin
      { Tag property of image icon provides the index into Shape array }
      iTag := TImage(Sender).Tag ;
      { Update the port icon with the digital port tool's image }
-     if CurrentTool.Digital or (TWaveShape(TImage(Source).Tag) = wvNone) then begin
+     // if CurrentTool.Digital or (TWaveShape(TImage(Source).Tag) = wvNone) then begin
+     if CurrentTool.Digital then begin
         TIMage(Sender).Picture := TImage(Source).Picture ;
-        Stimulator.Prog.Shape[iTag] := TWaveShape( TImage(Source).Tag ) ;
-        shSelected.Left := TIMage(Sender).Left ;
-        shSelected.Top := TIMage(Sender).Top + TIMage(Sender).Height ;
-        shSelected.Width := TIMage(Sender).Width ;
+        if (CurrentTool.IsCopy) then
+        begin
+          FromTag := CurrentTool.CopyingFrom;
+          Stimulator.Prog.Shape[iTag] := Stimulator.Prog.Shape[FromTag];
+          Stimulator.Prog.Amplitude[iTag] := Stimulator.Prog.Amplitude[FromTag];
+          Stimulator.Prog.Duration[iTag] := Stimulator.Prog.Duration[FromTag];
+          Stimulator.Prog.Increment[iTag] := Stimulator.Prog.Increment[FromTag];
+          Stimulator.Prog.RampStart[iTag] := Stimulator.Prog.RampStart[FromTag];
+          Stimulator.Prog.RampEnd[iTag] := Stimulator.Prog.RampEnd[FromTag];
+          Stimulator.Prog.PulseInterval[iTag] := Stimulator.Prog.PulseInterval[FromTag];
+          Stimulator.Prog.NumPulses[iTag] := Stimulator.Prog.NumPulses[FromTag];
+          Stimulator.Prog.Period[iTag] := Stimulator.Prog.Period[FromTag];
+          Stimulator.Prog.Delay[iTag] := Stimulator.Prog.Delay[FromTag];
+          Stimulator.Prog.Invert[iTag] := Stimulator.Prog.Invert[FromTag];
+        end else
+        begin
+          Stimulator.Prog.Shape[iTag] := TWaveShape( TImage(Source).Tag ) ;
+        end;
         end ;
      { Update waveform parameter table }
      SetCursor( False ) ;
-     FillParameterTable(iTag,True) ;
+     FillParameterTable(iTag, not CurrentTool.IsCopy) ;
+     shSelected.Left := TIMage(Sender).Left ;
+     shSelected.Top := TIMage(Sender).Top + TIMage(Sender).Height ;
+     shSelected.Width := TIMage(Sender).Width ;
      Stimulator.Prog.Saved := False ;
      pbDisplay.invalidate ;
      end;
@@ -735,7 +799,7 @@ begin
 
      if Num >= 0 then begin
         case Stimulator.Prog.Shape[Num] of
-        wvNone : begin
+        wvNone, wvDigNone : begin
              { No waveform }
              Table.RowCount := 1 ;
              Table.ColCount := 2 ;
