@@ -107,6 +107,7 @@ object RecADCOnlyFrm: TRecADCOnlyFrm
         Font.Style = [fsBold]
         ParentFont = False
         TabOrder = 3
+        OnClick = ckRecordADCSignalsOnlyClick
       end
     end
     object MarkGrp: TGroupBox
@@ -702,7 +703,7 @@ object RecADCOnlyFrm: TRecADCOnlyFrm
         Scale = 1.000000000000000000
         Units = 's'
         NumberFormat = '%.4g'
-        LoLimit = 0.100000001490116100
+        LoLimit = 0.050000000745058060
         HiLimit = 2000.000000000000000000
       end
       object rbTDisplayUnitMins: TRadioButton
