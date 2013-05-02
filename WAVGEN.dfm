@@ -210,6 +210,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot2: TImage
       Tag = 2
@@ -292,6 +293,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot3: TImage
       Tag = 3
@@ -374,6 +376,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot4: TImage
       Tag = 4
@@ -947,6 +950,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Label1: TLabel
       Left = 8
@@ -1050,6 +1054,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig1: TImage
       Tag = 11
@@ -1137,6 +1142,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig2: TImage
       Tag = 12
@@ -1223,6 +1229,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig3: TImage
       Tag = 13
@@ -1309,6 +1316,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig4: TImage
       Tag = 14
@@ -1395,6 +1403,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig5: TImage
       Tag = 15
@@ -1481,6 +1490,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig6: TImage
       Tag = 16
@@ -1567,6 +1577,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object Dig7: TImage
       Tag = 17
@@ -1653,6 +1664,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = dig0Click
       OnDragDrop = dig0DragDrop
       OnDragOver = dig0DragOver
+      OnMouseDown = DigProt0MouseDown
     end
     object lbDig0: TLabel
       Left = 391
@@ -1869,6 +1881,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot19: TImage
       Tag = 19
@@ -1951,6 +1964,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot20: TImage
       Tag = 20
@@ -2033,6 +2047,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot21: TImage
       Tag = 21
@@ -2115,6 +2130,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot22: TImage
       Tag = 22
@@ -2197,6 +2213,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot23: TImage
       Tag = 23
@@ -2279,6 +2296,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot24: TImage
       Tag = 24
@@ -2361,6 +2379,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot25: TImage
       Tag = 25
@@ -2443,6 +2462,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot26: TImage
       Tag = 26
@@ -2525,6 +2545,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot27: TImage
       Tag = 27
@@ -2607,6 +2628,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Label10: TLabel
       Left = 8
@@ -2705,6 +2727,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot29: TImage
       Tag = 29
@@ -2787,6 +2810,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot30: TImage
       Tag = 30
@@ -2869,6 +2893,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot31: TImage
       Tag = 31
@@ -2951,6 +2976,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot32: TImage
       Tag = 32
@@ -3033,6 +3059,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot33: TImage
       Tag = 33
@@ -3115,6 +3142,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot34: TImage
       Tag = 34
@@ -3197,6 +3225,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot35: TImage
       Tag = 35
@@ -3279,6 +3308,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot36: TImage
       Tag = 36
@@ -3361,6 +3391,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object Prot37: TImage
       Tag = 37
@@ -3443,6 +3474,7 @@ object WavGenFrm: TWavGenFrm
       OnClick = Prot0Click
       OnDragDrop = Prot0DragDrop
       OnDragOver = Prot0DragOver
+      OnMouseDown = Prot0MouseDown
     end
     object TableGrp: TGroupBox
       Left = 8
