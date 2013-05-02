@@ -154,6 +154,7 @@ type
     procedure ckPlaybackEnabledClick(Sender: TObject);
     procedure bPlaybackSetupClick(Sender: TObject);
     procedure cbPhotoStimProgramChange(Sender: TObject);
+    procedure ckRecordADCSignalsOnlyClick(Sender: TObject);
   private
     { Private declarations }
     ADCDevice : SmallInt ;                    // Device # of A/D Converter
@@ -400,6 +401,9 @@ begin
      ckPhotoStimEnabled.Checked := MainFrm.PhotoStim.Enabled ;
      ckDynamicProtocolEnabled.Checked := MainFrm.DynamicProtocol.Enabled ;
      ckPlaybackEnabled.Checked := MainFrm.Playback.Enabled ;
+
+     // Make AD recording choice persistent
+     ckRecordADCSignalsOnly.Checked := MainFrm.RecordADCSignalsOnly;
 
      // Delay between start of A/D sampling and image acquisition
      edImageStartDelay.Value := 0.0 ;
@@ -1985,6 +1989,14 @@ begin
        MainFrm.UpdateRecentFilesList;
      end;
 
+     // Reload stimuli programs so someone can define a new one
+     // without closing + reopening Record Signals window
+     // Load list of stimulus programs
+     UpdateStimProgramList ;
+
+     // Load list of photo-stimulus programs
+     UpdatePhotoStimProgramList ;
+
      if not LabIO.ADCActive[ADCDevice] then begin
         NewDisplaySetup ;
         StartADC ;
@@ -2855,6 +2867,10 @@ begin
 
 
 
+procedure TRecADCOnlyFrm.ckRecordADCSignalsOnlyClick(Sender: TObject);
+begin
+  MainFrm.RecordADCSignalsOnly := ckRecordADCSignalsOnly.Checked;
+end;
 
 procedure TRecADCOnlyFrm.ToggleVoltageStimulus;
 begin

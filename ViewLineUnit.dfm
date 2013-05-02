@@ -1,6 +1,6 @@
 object ViewLineFrm: TViewLineFrm
-  Left = 1071
-  Top = 516
+  Left = 364
+  Top = 126
   Width = 840
   Height = 812
   Caption = 'View Line Scans'
@@ -618,6 +618,7 @@ object ViewLineFrm: TViewLineFrm
       NumBytesPerSample = 2
       FixZeroLevels = False
       DisplaySelected = True
+      FontSize = 8
     end
     object scFLDisplay: TScopeDisplay
       Left = 8
@@ -659,6 +660,7 @@ object ViewLineFrm: TViewLineFrm
       NumBytesPerSample = 2
       FixZeroLevels = False
       DisplaySelected = True
+      FontSize = 8
     end
     object scRDisplay: TScopeDisplay
       Left = 8
@@ -700,6 +702,7 @@ object ViewLineFrm: TViewLineFrm
       NumBytesPerSample = 4
       FixZeroLevels = False
       DisplaySelected = False
+      FontSize = 8
     end
     object ckDisplayCalBar: TCheckBox
       Left = 56
@@ -760,7 +763,7 @@ object ViewLineFrm: TViewLineFrm
         Scale = 0.016666699200868610
         Units = 'min'
         NumberFormat = '%.4g'
-        LoLimit = 1.000000000000000000
+        LoLimit = 0.050000000745058060
         HiLimit = 2000.000000000000000000
       end
       object rbTDisplayUnitMins: TRadioButton
