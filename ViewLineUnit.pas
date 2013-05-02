@@ -20,6 +20,9 @@ unit ViewLineUnit;
 //          Line scan & ratio time course display now has minimum height ensured
 // 05.08.10 JD LoadLineScan now fills up display buffer to end
 // 07.09.10 JD List "out of range" exception when % display zoom exceeds line scan zoom prevented 
+// 06.03.13 DE Made FL and R displays behave more like ADC channels (times would
+//          not agree, and half-range button would stop at a limit based on
+//          window width)
 
 interface
 
@@ -709,7 +712,9 @@ begin
      // Make no. of lines displayed multiple of block size
      NumDisplayLines := LSDisplayMaxBlocks*LSDisplayBlockSize ;
      // Update display duration
-     edTDisplay.Value := NumDisplayLines*edLineScanInterval.Value ;
+     // edTDisplay.Value := NumDisplayLines*edLineScanInterval.Value ;
+     edTDisplay.Value := Min(NumDisplayLines*edLineScanInterval.Value,
+                             edTDisplay.Value) ;
 
      // Set large change increment of line selection slider bar
      sbDisplay.LargeChange := NumDisplayLines div 4 ;
@@ -738,7 +743,8 @@ begin
      // Update line scan image
      Image.Picture.Assign(BitMap) ;
 
-     DisplayPixelIntensityTimeCourse ;
+     // Was being called twice, here and in TimerTimer
+     // DisplayPixelIntensityTimeCourse ;
 
      ImageAvailable := True ;
 
@@ -891,6 +897,11 @@ var
     BackgRowEnd : Integer ;
     Sum : Single ;
     BackgroundIntensity : Single ;
+    NumFLScans: Integer;
+    MaxFLDisplayBlocks: Integer;
+    FLDisplayBlockSize: Integer;
+    FLDisplayPointsPerBlock: Integer;
+    MaxFLDisplayPoints: Integer;
 begin
 
      if not ckDisplayFluorescence.Checked then Exit ;
@@ -926,7 +937,19 @@ begin
      BackgroundPixel := Min( BackgroundPixel,
                              FrameWidth - (HalfNumPixelsAvg -(NumPixelsAvg mod 2) ) ) ;
 
-     NumPointsPerRow := LSDisplayMaxBlocks*Min(LSDisplayBlockSize,2) ;
+     NumFLScans := Round(edTDisplay.Value/edLineScanInterval.Value);
+     MaxFLDisplayBlocks := LSDisplayMaxBlocks;
+     FLDisplayBlockSize := NumFLScans div MaxFLDisplayBlocks;
+     if FLDisplayBlockSize <= 1 then
+       FLDisplayBlockSize := 1;
+     MaxFLDisplayBlocks := NumFLScans div FLDisplayBlockSize;
+     FLDisplayPointsPerBlock := Min(FLDisplayBlockSize, 2);
+     MaxFLDisplayPoints := MaxFLDisplayBlocks * FLDisplayPointsPerBlock;
+     {scADCDisplay.MaxPoints := MaxADCDisplayPoints ;
+     scADCDisplay.xMin := 0 ;
+     scADCDisplay.xMax := MaxADCDisplayPoints-1 ;}
+     // NumPointsPerRow := LSDisplayMaxBlocks*Min(LSDisplayBlockSize,2) ;
+     NumPointsPerRow := MaxFLDisplayPoints;
 
      RowStart := TimeCoursePixel  - HalfNumPixelsAvg ;
      RowEnd := RowStart + NumPixelsAvg - 1 ;
@@ -995,6 +1018,11 @@ var
     SumN,SumD : Single ;
     YN, YD, YScale, YThreshold : Single ;
     BackgroundIntensityN,BackgroundIntensityD : Single ;
+    NumRScans: Integer;
+    MaxRDisplayBlocks: Integer;
+    RDisplayBlockSize: Integer;
+    RDisplayPointsPerBlock: Integer;
+    MaxRDisplayPoints: Integer;
 begin
 
      if not ckDisplayR.Checked then Exit ;
@@ -1030,7 +1058,16 @@ begin
      BackgroundPixel := Min( BackgroundPixel,
                              FrameWidth - (HalfNumPixelsAvg -(NumPixelsAvg mod 2) ) ) ;
 
-     NumPointsPerRow := LSDisplayMaxBlocks*Min(LSDisplayBlockSize,2) ;
+     NumRScans := Round(edTDisplay.Value/edLineScanInterval.Value);
+     MaxRDisplayBlocks := LSDisplayMaxBlocks;
+     RDisplayBlockSize := NumRScans div MaxRDisplayBlocks;
+     if RDisplayBlockSize <= 1 then
+       RDisplayBlockSize := 1;
+     MaxRDisplayBlocks := NumRScans div RDisplayBlockSize;
+     RDisplayPointsPerBlock := Min(RDisplayBlockSize, 2);
+     MaxRDisplayPoints := MaxRDisplayBlocks * RDisplayPointsPerBlock;
+     // NumPointsPerRow := LSDisplayMaxBlocks*Min(LSDisplayBlockSize,2) ;
+     NumPointsPerRow := MaxRDisplayPoints;
 
      RowStart := TimeCoursePixel  - HalfNumPixelsAvg ;
      RowEnd := RowStart + NumPixelsAvg - 1 ;
