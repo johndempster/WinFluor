@@ -24,6 +24,8 @@ unit RecADCOnlyUnit;
 // 19.11.12 DE Modified FormActivate so that if no new file has been opened,
 //          the Record form will auotmatically open the next default file
 //          (feature request from M. Day)
+// 11.12.12 DE Added brief delay to allow photostimulus shutter to close
+// 08.01.13 DE Voltage stimulus would not start on some rigs
 //
 // 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
 // 24.04.13 JD .. Real time display sweep now correctly synchronised to incoming signal
@@ -257,6 +259,8 @@ type
              VMin : Single;                            // Minimum voltage
              VMax : Single;                            // Maximum voltage
              Amplitude : Single) : Single ;            // Desired amplitude in mW
+    procedure ToggleVoltageStimulus;  // To address failure of stimulus
+                                      // protocol to start on some rigs
 
     procedure Wait( Delay : Single ) ;
   public
@@ -267,7 +271,7 @@ type
     procedure StartADC ;
     procedure ImportImageFile( ImportFileName : String ) ;
     procedure UpdateStimProgramList ;
-    procedure UpdatePhotoStimProgramList ;    
+    procedure UpdatePhotoStimProgramList ;
     procedure StartRecordingToDisk(
               RecordingTime : Single ;             // Time to record for (s)
               Num : Integer ;                      // No. if frames/scans to record
@@ -428,6 +432,8 @@ begin
      Resize ;
 
      StartADC ;
+     // To address failure of stimulus protocol to start on some rigs
+     ToggleVoltageStimulus;
 
      // Start schedule events timer (runs at 50 ms intervals)
      InitialisationComplete := True ;
@@ -1982,6 +1988,8 @@ begin
      if not LabIO.ADCActive[ADCDevice] then begin
         NewDisplaySetup ;
         StartADC ;
+        // To address failure of stimulus protocol to start on some rigs
+        ToggleVoltageStimulus;
         end ;
 
      end;
@@ -2113,7 +2121,9 @@ begin
      MainFrm.IDRFile.ADCMaxValue := ADCMaxValue ;
 
      // Shut down stimulus if one is in use
-     if cbStimProgram.ItemIndex > 0 then begin
+     bStopStimulus.Click;
+     Wait(0.25); // Delay to prevent shutter from failing to close
+     {if cbStimProgram.ItemIndex > 0 then begin
         // Set voltage and digital stimulus channels to default (off) settings
         StimulusRequired := False ;
         UpdateStimulusWaveforms( StimulusRequired, false ) ;
@@ -2124,7 +2134,7 @@ begin
         if not ckPlaybackEnabled.Checked then
            cbStimProgram.Enabled := True ;
         VHoldGrp.Enabled := True ;
-        end ;
+        end ;}
 
      if ckRecordADCSignalsOnly.Checked then begin
         // If recording analogue signals only, create an empty image
@@ -2845,5 +2855,20 @@ begin
 
 
 
+
+procedure TRecADCOnlyFrm.ToggleVoltageStimulus;
+begin
+  if MainFrm.PhotoStim.Enabled then
+  begin
+    ckPhotoStimEnabled.Checked := False;
+    bStartStimulus.Click;
+    bStopStimulus.Click;
+    ckPhotoStimEnabled.Checked := True;
+  end else
+  begin
+    bStartStimulus.Click;
+    bStopStimulus.Click;
+  end;
+end;
 
 end.
