@@ -2227,8 +2227,8 @@ begin
 
      // Start recording
      AutoRecordingMode := False ;
-     RecordingFirstTrace := True;
-     scADCDisplay.XOffset := 0;
+     // RecordingFirstTrace := True;
+     // scADCDisplay.XOffset := 0;
      StartRecordingToDisk( edRecordingTime.Value,
                            1,
                            RecordingMode ) ;
@@ -2345,6 +2345,8 @@ begin
                      [RecordingTime,Num] )) ;
         end ;
 
+     RecordingFirstTrace := True;
+     scADCDisplay.XOffset := 0;
      // Start A/D sampling
      StartADC ;
 
