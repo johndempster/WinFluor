@@ -33,7 +33,7 @@ object SnapFrm: TSnapFrm
     Left = 2
     Top = 0
     Width = 175
-    Height = 745
+    Height = 825
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -43,7 +43,7 @@ object SnapFrm: TSnapFrm
     TabOrder = 0
     object ImageCaptureGrp: TGroupBox
       Left = 8
-      Top = 64
+      Top = 144
       Width = 161
       Height = 169
       Caption = ' Image Capture '
@@ -187,7 +187,7 @@ object SnapFrm: TSnapFrm
     end
     object DisplayGrp: TGroupBox
       Left = 8
-      Top = 232
+      Top = 312
       Width = 161
       Height = 193
       Caption = ' Display '
@@ -416,7 +416,7 @@ object SnapFrm: TSnapFrm
     end
     object ExcitationLightGrp: TGroupBox
       Left = 8
-      Top = 576
+      Top = 656
       Width = 161
       Height = 113
       Caption = ' Excitation Light '
@@ -520,7 +520,7 @@ object SnapFrm: TSnapFrm
     end
     object ShadingGrp: TGroupBox
       Left = 8
-      Top = 428
+      Top = 508
       Width = 161
       Height = 146
       Caption = ' Shading Correction '
@@ -663,7 +663,7 @@ object SnapFrm: TSnapFrm
     end
     object ZStageGrp: TGroupBox
       Left = 8
-      Top = 688
+      Top = 768
       Width = 161
       Height = 49
       Caption = 'Z Axis Position '
@@ -691,6 +691,43 @@ object SnapFrm: TSnapFrm
         PageSize = 0
         TabOrder = 1
         OnChange = sbZPositionChange
+      end
+    end
+    object FreezeGrp: TGroupBox
+      Left = 8
+      Top = 60
+      Width = 161
+      Height = 80
+      TabOrder = 6
+      object bFreeze: TButton
+        Left = 8
+        Top = 14
+        Width = 145
+        Height = 25
+        Caption = 'Freeze Frame'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 0
+        OnClick = bFreezeClick
+      end
+      object bResume: TButton
+        Left = 8
+        Top = 46
+        Width = 145
+        Height = 25
+        Caption = 'Resume Acquisition'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 1
+        OnClick = bResumeClick
       end
     end
   end

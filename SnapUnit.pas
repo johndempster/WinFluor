@@ -106,6 +106,9 @@ type
     ZStageGrp: TGroupBox;
     edZPosition: TValidatedEdit;
     sbZPosition: TScrollBar;
+    FreezeGrp: TGroupBox;
+    bFreeze: TButton;
+    bResume: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
@@ -145,6 +148,8 @@ type
     procedure ckContrast6SDOnlyClick(Sender: TObject);
     procedure sbZPositionChange(Sender: TObject);
     procedure edZPositionKeyPress(Sender: TObject; var Key: Char);
+    procedure bFreezeClick(Sender: TObject);
+    procedure bResumeClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -201,6 +206,8 @@ type
     ClipboardImageFormat : Word ;
     ClipboardImageData: THandle ;
     ClipboardPalette : HPalette ;
+
+    FreezeFrame: Boolean;
 
     procedure FillBufferWithEmptyFlags( StartAt : Integer ; EndAt : Integer ) ;
     procedure SetDisplayIntensityRange(
@@ -266,6 +273,7 @@ type
     FrameHeight : Integer ;                   // Frame height in use
     PFrameBuf : Pointer ;                     // Pointer to circular image capture buffer
     PDisplayBuf : PIntArray ; // Pointer to displayed image buffers
+    PFreezeBuf: PIntArray;    // Buffer for holding single frame to display
     PBackGroundBuf : PIntArray ; // Background image buffer
     PSumBuf : PSingleArray ;      // Summation buffer
     FrameCounter : Integer ;  // Frames acquired counter
@@ -332,6 +340,7 @@ begin
 
      // Displayed image storage buffer pointers
      PDisplayBuf := Nil ;
+     PFreezeBuf := Nil;
      PBackgroundBuf := Nil ;
      PSumBuf := Nil ;
      PWorkBuf := Nil ;
@@ -340,6 +349,8 @@ begin
      BitMap := Nil ;
 
      Timer.Enabled := False ;
+
+     FreezeFrame := False;
 
      ttest := timegettime + 3000 ;
 
@@ -461,6 +472,9 @@ begin
                           ' TIFF (*.tif)|*.tif' ;
      SaveDialog.FilterIndex := 3 ;
      SnapNum := 1 ;
+
+     bFreeze.Enabled := True;
+     bResume.Enabled := False;
 
      MainFrm.StatusBar.SimpleText := ' Camera initialised' ;
 
@@ -636,6 +650,17 @@ begin
            end ;
          end ;
      GetMem( PDisplayBuf,NumPixelsPerFrame*SizeOf(Integer) ) ;
+     if PFreezeBuf <> Nil then
+     begin
+       Try
+         FreeMem(PFreezeBuf);
+         PFreezeBuf := Nil;
+       except
+         outputdebugString(PChar('Error FreeMem(PFreezeBufs[i]'));
+         PFreezeBuf := Nil;
+       end;
+     end;
+     GetMem(PFreezeBuf, NumPixelsPerFrame*SizeOf(Integer));
 
      // Create background buffer
      if PBackgroundBuf <> Nil then begin
@@ -1203,21 +1228,30 @@ begin
 
     // Copy image from circular buffer into 32 bit display buffer
 
-    j := StartAt ;
-    if ByteImage then begin
-       // 8 bit images
-       for i := 0 to NumPixelsPerFrame-1 do begin
-           PCurrentFrame^[i] := PByteArray(PFrameBuf)^[j] ;
-           Inc(j) ;
-           end ;
-       end
-    else begin
-       // 16 bits images
-       for i := 0 to NumPixelsPerFrame-1 do begin
-           PCurrentFrame^[i] := PWordArray(PFrameBuf)^[j] ;
-           Inc(j) ;
-           end ;
-       end ;
+    if FreezeFrame then
+    begin
+      for i := 0 to NumPixelsPerFrame-1 do
+      begin
+        PCurrentFrame^[i] := PFreezeBuf^[i];
+      end;
+    end else
+    begin
+      j := StartAt ;
+      if ByteImage then begin
+         // 8 bit images
+         for i := 0 to NumPixelsPerFrame-1 do begin
+             PCurrentFrame^[i] := PByteArray(PFrameBuf)^[j] ;
+             Inc(j) ;
+             end ;
+         end
+      else begin
+         // 16 bits images
+         for i := 0 to NumPixelsPerFrame-1 do begin
+             PCurrentFrame^[i] := PWordArray(PFrameBuf)^[j] ;
+             Inc(j) ;
+             end ;
+         end ;
+    end;
 
     if ckBackgroundSubtraction.Checked and bAcquireBackground.Enabled then begin
        for i := 0 to NumPixelsPerFrame-1 do begin
@@ -2033,6 +2067,11 @@ begin
         FreeMem(PDisplayBuf) ;
         PDisplayBuf := Nil ;
         end ;
+     if PFreezeBuf <> Nil then
+     begin
+       FreeMem(PFreezeBuf);
+       PFreezeBuf := Nil;
+     end;
 
      if PBackgroundBuf <> Nil then begin
         FreeMem(PBackgroundBuf) ;
@@ -2758,5 +2797,25 @@ begin
          edZPosition.Value := ZStage.Position ;
          end ;
       end;
+
+procedure TSnapFrm.bFreezeClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  FreezeFrame := True;
+  bFreeze.Enabled := False;
+  bResume.Enabled := True;
+  for i := 0 to NumPixelsPerFrame-1 do
+  begin
+    PFreezeBuf^[i] := PDisplayBuf^[i];
+  end;
+end;
+
+procedure TSnapFrm.bResumeClick(Sender: TObject);
+begin
+  FreezeFrame := False;
+  bFreeze.Enabled := True;
+  bResume.Enabled := False;
+end;
 
 end.
