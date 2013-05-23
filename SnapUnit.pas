@@ -273,7 +273,6 @@ type
     FrameHeight : Integer ;                   // Frame height in use
     PFrameBuf : Pointer ;                     // Pointer to circular image capture buffer
     PDisplayBuf : PIntArray ; // Pointer to displayed image buffers
-    PFreezeBuf: PIntArray;    // Buffer for holding single frame to display
     PBackGroundBuf : PIntArray ; // Background image buffer
     PSumBuf : PSingleArray ;      // Summation buffer
     FrameCounter : Integer ;  // Frames acquired counter
@@ -340,7 +339,6 @@ begin
 
      // Displayed image storage buffer pointers
      PDisplayBuf := Nil ;
-     PFreezeBuf := Nil;
      PBackgroundBuf := Nil ;
      PSumBuf := Nil ;
      PWorkBuf := Nil ;
@@ -650,17 +648,6 @@ begin
            end ;
          end ;
      GetMem( PDisplayBuf,NumPixelsPerFrame*SizeOf(Integer) ) ;
-     if PFreezeBuf <> Nil then
-     begin
-       Try
-         FreeMem(PFreezeBuf);
-         PFreezeBuf := Nil;
-       except
-         outputdebugString(PChar('Error FreeMem(PFreezeBufs[i]'));
-         PFreezeBuf := Nil;
-       end;
-     end;
-     GetMem(PFreezeBuf, NumPixelsPerFrame*SizeOf(Integer));
 
      // Create background buffer
      if PBackgroundBuf <> Nil then begin
@@ -1228,30 +1215,21 @@ begin
 
     // Copy image from circular buffer into 32 bit display buffer
 
-    if FreezeFrame then
-    begin
-      for i := 0 to NumPixelsPerFrame-1 do
-      begin
-        PCurrentFrame^[i] := PFreezeBuf^[i];
-      end;
-    end else
-    begin
-      j := StartAt ;
-      if ByteImage then begin
-         // 8 bit images
-         for i := 0 to NumPixelsPerFrame-1 do begin
-             PCurrentFrame^[i] := PByteArray(PFrameBuf)^[j] ;
-             Inc(j) ;
-             end ;
-         end
-      else begin
-         // 16 bits images
-         for i := 0 to NumPixelsPerFrame-1 do begin
-             PCurrentFrame^[i] := PWordArray(PFrameBuf)^[j] ;
-             Inc(j) ;
-             end ;
-         end ;
-    end;
+    j := StartAt ;
+    if ByteImage then begin
+       // 8 bit images
+       for i := 0 to NumPixelsPerFrame-1 do begin
+           PCurrentFrame^[i] := PByteArray(PFrameBuf)^[j] ;
+           Inc(j) ;
+           end ;
+       end
+    else begin
+       // 16 bits images
+       for i := 0 to NumPixelsPerFrame-1 do begin
+           PCurrentFrame^[i] := PWordArray(PFrameBuf)^[j] ;
+           Inc(j) ;
+           end ;
+       end ;
 
     if ckBackgroundSubtraction.Checked and bAcquireBackground.Enabled then begin
        for i := 0 to NumPixelsPerFrame-1 do begin
@@ -2067,11 +2045,6 @@ begin
         FreeMem(PDisplayBuf) ;
         PDisplayBuf := Nil ;
         end ;
-     if PFreezeBuf <> Nil then
-     begin
-       FreeMem(PFreezeBuf);
-       PFreezeBuf := Nil;
-     end;
 
      if PBackgroundBuf <> Nil then begin
         FreeMem(PBackgroundBuf) ;
@@ -2135,7 +2108,7 @@ begin
         end ;
 
      // Start camera
-     if not CameraRunning then StartCamera ;
+     if not CameraRunning and not FreezeFrame then StartCamera ;
 
      // Set Z stage control
      ZStageGrp.Visible := ZStage.Available ;
@@ -2146,7 +2119,7 @@ begin
      sbZPosition.Max := Round(ZStage.MaxPosition/ZStage.MinStepSize) ;
      sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
 
-     Timer.Enabled := True ;
+     Timer.Enabled := not FreezeFrame ;
 
      end;
 
@@ -2803,17 +2776,15 @@ var
   i: Integer;
 begin
   FreezeFrame := True;
+  StopLiveImaging;
   bFreeze.Enabled := False;
   bResume.Enabled := True;
-  for i := 0 to NumPixelsPerFrame-1 do
-  begin
-    PFreezeBuf^[i] := PDisplayBuf^[i];
-  end;
 end;
 
 procedure TSnapFrm.bResumeClick(Sender: TObject);
 begin
   FreezeFrame := False;
+  RestartCamera;
   bFreeze.Enabled := True;
   bResume.Enabled := False;
 end;
