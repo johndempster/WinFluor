@@ -2033,7 +2033,69 @@ begin
               end ;
            end ;
 
-        if sbDetDisplay.Position >= sbDetDisplay.Max then Done := True ;
+        if sbDetDisplay.Position >= sbDetDisplay.Max then
+        begin
+          // We have reached end of display, so no more NewDisplayNeeded
+          while i < scDetDisplay.NumPoints do
+          begin
+            // Update rolling average baseline
+            if rbRollingBaseline.Checked then
+            begin
+              if InitialiseRollingBaseline then
+              begin
+                RollingBaseline := DetBuf[i];
+                InitialiseRollingBaseline := False;
+              end;
+              RBAddFraction := scDetDisplay.TScale /
+                               edRollingBaselinePeriod.Value;
+              RollingBaseline := (1.0-RBAddFraction) * RollingBaseline +
+                                 RBAddFraction*DetBuf[i];
+              yBaseline := Round(RollingBaseline);
+            end;
+
+            // Has signal exceeded threshold ?
+            yDiff := DetBuf[i] - yBaseline;
+            case iPolarity of
+              PositiveGoing : begin
+                  if yDiff >= yThreshold then Inc(ExceedCount)
+                                         else ExceedCount := 0 ;
+                  end ;
+              NegativeGoing : begin
+                  if yDiff <= yThreshold then Inc(ExceedCount)
+                                         else ExceedCount := 0 ;
+                  end ;
+              else begin
+                  if Abs(yDiff) >= Abs(yThreshold) then Inc(ExceedCount)
+                                                   else ExceedCount := 0 ;
+                  end ;
+            end;
+
+            if ExceedCount = 1 then iDetectedAt := i ;
+            if ExceedCount >= NumExceedCountsRequired then
+            begin
+              // Event detected
+              EventList[NumEvents].Time := (iDetectedAt +
+                                   sbDetDisplay.Position)*scDetDisplay.TScale;
+              EventList[NumEvents].Accepted := True;
+              if NumEvents < High(EventList) then Inc(NumEvents);
+              sbEventNum.Max := Max(NumEvents,1);
+              sbEventNum.Position := sbEventNum.Max ;
+              // Set pointer to start detecting again after dead time
+              i := iDetectedAt + Round(edDeadTime.Value/scDetDisplay.TScale);
+              ExceedCount := 0 ;
+              MainFrm.StatusBar.SimpleText := Format(
+                                           'Detecting Events: %d events detected %.4g/%.4gs',
+                                           [NumEvents,
+                                            (sbDetDisplay.Position + i)*scDetDisplay.TScale,
+                                            sbDetDisplay.Max*scDetDisplay.TScale]);
+              Application.ProcessMessages;
+            end else
+            begin
+              Inc(i);
+            end;
+          end;
+          Done := True ;
+        end;
         end ;
 
      sbEventNum.Max := Max(NumEvents,1) ;
