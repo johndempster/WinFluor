@@ -1,8 +1,8 @@
 object SnapFrm: TSnapFrm
-  Left = 466
-  Top = 104
+  Left = 809
+  Top = 531
   Width = 693
-  Height = 945
+  Height = 876
   Caption = 'Record Image'
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -362,7 +362,7 @@ object SnapFrm: TSnapFrm
           object Label12: TLabel
             Left = 132
             Top = 16
-            Width = 6
+            Width = 5
             Height = 19
             Caption = '-'
             Font.Charset = ANSI_CHARSET
@@ -375,7 +375,7 @@ object SnapFrm: TSnapFrm
           object Label14: TLabel
             Left = 132
             Top = 56
-            Width = 6
+            Width = 5
             Height = 19
             Caption = '-'
             Font.Charset = ANSI_CHARSET

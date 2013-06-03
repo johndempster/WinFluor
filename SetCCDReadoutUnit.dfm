@@ -1,8 +1,8 @@
 object SetCCDReadoutFrm: TSetCCDReadoutFrm
   Left = 777
   Top = 526
-  Width = 205
-  Height = 139
+  Width = 219
+  Height = 152
   Caption = 'Set CCD Area'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

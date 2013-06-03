@@ -447,7 +447,7 @@ object RecordFrm: TRecordFrm
             object Label12: TLabel
               Left = 132
               Top = 16
-              Width = 6
+              Width = 5
               Height = 19
               Caption = '-'
               Font.Charset = ANSI_CHARSET
@@ -473,7 +473,7 @@ object RecordFrm: TRecordFrm
             object Label14: TLabel
               Left = 132
               Top = 56
-              Width = 6
+              Width = 5
               Height = 19
               Caption = '-'
               Font.Charset = ANSI_CHARSET
@@ -1104,7 +1104,7 @@ object RecordFrm: TRecordFrm
         Top = 16
         Width = 170
         Height = 230
-        ActivePage = StimulatorTab
+        ActivePage = ExcitationLightTab
         MultiLine = True
         TabOrder = 0
         object ExcitationLightTab: TTabSheet
@@ -1197,7 +1197,7 @@ object RecordFrm: TRecordFrm
               Width = 81
               Height = 22
               Hint = 'Selected single excitation wavelength'
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 2
               Text = 'cbWavelength'
               OnChange = cbWavelengthChange
@@ -1224,7 +1224,7 @@ object RecordFrm: TRecordFrm
               Width = 124
               Height = 22
               Hint = 'Selected single excitation wavelength'
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 4
               Text = 'cbWavelength'
               OnChange = cbSequenceChange
@@ -1541,9 +1541,9 @@ object RecordFrm: TRecordFrm
         Caption = ' Z Stack'
         TabOrder = 1
         object Label21: TLabel
-          Left = 76
+          Left = 77
           Top = 14
-          Width = 37
+          Width = 36
           Height = 14
           Alignment = taRightJustify
           Caption = 'Start At'

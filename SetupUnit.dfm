@@ -1,10 +1,10 @@
 object SetupFrm: TSetupFrm
   Left = 488
-  Top = 115
+  Top = 114
   BorderStyle = bsDialog
   Caption = 'Camera/System Setup'
-  ClientHeight = 539
-  ClientWidth = 486
+  ClientHeight = 572
+  ClientWidth = 485
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -21,7 +21,7 @@ object SetupFrm: TSetupFrm
   TextHeight = 14
   object bOK: TButton
     Left = 8
-    Top = 511
+    Top = 543
     Width = 49
     Height = 24
     Caption = 'OK'
@@ -37,7 +37,7 @@ object SetupFrm: TSetupFrm
   end
   object bCancel: TButton
     Left = 64
-    Top = 511
+    Top = 543
     Width = 49
     Height = 17
     Caption = 'Cancel'
@@ -53,7 +53,7 @@ object SetupFrm: TSetupFrm
   end
   object CardGrp: TGroupBox
     Left = 8
-    Top = 408
+    Top = 440
     Width = 473
     Height = 97
     Caption = ' Interface Cards '
@@ -128,8 +128,8 @@ object SetupFrm: TSetupFrm
     Left = 8
     Top = 8
     Width = 473
-    Height = 393
-    ActivePage = CameraTab
+    Height = 425
+    ActivePage = LightSourceTab
     TabOrder = 3
     object CameraTab: TTabSheet
       Caption = 'Camera'
@@ -137,7 +137,7 @@ object SetupFrm: TSetupFrm
         Left = 8
         Top = 0
         Width = 225
-        Height = 329
+        Height = 393
         Caption = ' Camera '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
@@ -148,7 +148,7 @@ object SetupFrm: TSetupFrm
         TabOrder = 0
         object Label41: TLabel
           Left = 37
-          Top = 300
+          Top = 364
           Width = 92
           Height = 14
           Alignment = taRightJustify
@@ -248,7 +248,7 @@ object SetupFrm: TSetupFrm
         end
         object edTemperatureSetPoint: TValidatedEdit
           Left = 136
-          Top = 300
+          Top = 364
           Width = 81
           Height = 20
           AutoSize = False
@@ -267,7 +267,7 @@ object SetupFrm: TSetupFrm
           BevelOuter = bvNone
           TabOrder = 5
           object Label48: TLabel
-            Left = 27
+            Left = 3
             Top = 3
             Width = 77
             Height = 14
@@ -275,9 +275,9 @@ object SetupFrm: TSetupFrm
             Caption = 'A/D Converter'
           end
           object cbCameraADC: TComboBox
-            Left = 112
+            Left = 88
             Top = 3
-            Width = 97
+            Width = 121
             Height = 22
             Style = csDropDownList
             ItemHeight = 14
@@ -436,7 +436,7 @@ object SetupFrm: TSetupFrm
         ParentFont = False
         TabOrder = 2
         object Label16: TLabel
-          Left = 10
+          Left = 26
           Top = 60
           Width = 115
           Height = 14
@@ -445,7 +445,7 @@ object SetupFrm: TSetupFrm
           Caption = 'Trigger Delay'
         end
         object Label42: TLabel
-          Left = 10
+          Left = 26
           Top = 116
           Width = 115
           Height = 14
@@ -454,7 +454,7 @@ object SetupFrm: TSetupFrm
           Caption = 'Extra Readout Time'
         end
         object cbCameraStart: TComboBox
-          Left = 8
+          Left = 24
           Top = 16
           Width = 193
           Height = 22
@@ -463,7 +463,7 @@ object SetupFrm: TSetupFrm
           TabOrder = 0
         end
         object rbCameraStartActiveHigh: TRadioButton
-          Left = 8
+          Left = 24
           Top = 40
           Width = 81
           Height = 17
@@ -473,7 +473,7 @@ object SetupFrm: TSetupFrm
           TabStop = True
         end
         object rbCameraStartActiveLow: TRadioButton
-          Left = 96
+          Left = 112
           Top = 40
           Width = 89
           Height = 17
@@ -481,7 +481,7 @@ object SetupFrm: TSetupFrm
           TabOrder = 2
         end
         object edCameraTriggerOffset: TValidatedEdit
-          Left = 128
+          Left = 144
           Top = 60
           Width = 73
           Height = 20
@@ -497,7 +497,7 @@ object SetupFrm: TSetupFrm
           HiLimit = 1.000000015047466E30
         end
         object edCameraReadoutTime: TValidatedEdit
-          Left = 128
+          Left = 144
           Top = 116
           Width = 73
           Height = 20
@@ -511,7 +511,7 @@ object SetupFrm: TSetupFrm
           HiLimit = 1.000000015047466E30
         end
         object ckCCDClearPreExposure: TCheckBox
-          Left = 16
+          Left = 32
           Top = 82
           Width = 185
           Height = 17
@@ -521,7 +521,7 @@ object SetupFrm: TSetupFrm
           TabOrder = 5
         end
         object ckPostExposureReadout: TCheckBox
-          Left = 16
+          Left = 32
           Top = 98
           Width = 185
           Height = 17
@@ -543,7 +543,7 @@ object SetupFrm: TSetupFrm
         Left = 8
         Top = 0
         Width = 265
-        Height = 361
+        Height = 393
         Caption = 'Light Source  '
         Font.Charset = ANSI_CHARSET
         Font.Color = clWindowText
@@ -558,15 +558,71 @@ object SetupFrm: TSetupFrm
           Width = 249
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
+          Sorted = True
           TabOrder = 0
           OnChange = cbLightSourceChange
+        end
+        object LSLEDGrp: TGroupBox
+          Left = 7
+          Top = 82
+          Width = 250
+          Height = 59
+          Caption = ' LED O/P Voltages '
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+          TabOrder = 3
+          object Label35: TLabel
+            Left = 11
+            Top = 13
+            Width = 61
+            Height = 14
+            Caption = 'Off Voltage'
+          end
+          object Label36: TLabel
+            Left = 100
+            Top = 13
+            Width = 67
+            Height = 14
+            Caption = 'Max Voltage'
+          end
+          object edLEDOffVoltage: TValidatedEdit
+            Left = 8
+            Top = 29
+            Width = 80
+            Height = 20
+            AutoSize = False
+            Text = ' 0 V'
+            Scale = 1.000000000000000000
+            Units = 'V'
+            NumberFormat = '%.4g'
+            LoLimit = -1.000000015047466E29
+            HiLimit = 1.000000015047466E29
+          end
+          object edLEDMaxVoltage: TValidatedEdit
+            Left = 100
+            Top = 29
+            Width = 80
+            Height = 20
+            AutoSize = False
+            Text = ' 5 V'
+            Value = 5.000000000000000000
+            Scale = 1.000000000000000000
+            Units = 'V'
+            NumberFormat = '%.4g'
+            LoLimit = -1.000000015047466E29
+            HiLimit = 1.000000015047466E29
+          end
         end
         object LSCalGrp: TGroupBox
           Left = 7
           Top = 46
           Width = 250
-          Height = 147
+          Height = 83
           Caption = ' Calibration '
           TabOrder = 1
           object Label12: TLabel
@@ -697,7 +753,7 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
           end
           object cbLSWavelengthEnd: TComboBox
@@ -706,63 +762,8 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 1
-          end
-        end
-        object LSLEDGrp: TGroupBox
-          Left = 7
-          Top = 82
-          Width = 250
-          Height = 59
-          Caption = ' LED O/P Voltages '
-          Font.Charset = ANSI_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Arial'
-          Font.Style = [fsBold]
-          ParentFont = False
-          TabOrder = 3
-          object Label35: TLabel
-            Left = 11
-            Top = 13
-            Width = 61
-            Height = 14
-            Caption = 'Off Voltage'
-          end
-          object Label36: TLabel
-            Left = 100
-            Top = 13
-            Width = 67
-            Height = 14
-            Caption = 'Max Voltage'
-          end
-          object edLEDOffVoltage: TValidatedEdit
-            Left = 8
-            Top = 29
-            Width = 80
-            Height = 20
-            AutoSize = False
-            Text = ' 0 V'
-            Scale = 1.000000000000000000
-            Units = 'V'
-            NumberFormat = '%.4g'
-            LoLimit = -1.000000015047466E29
-            HiLimit = 1.000000015047466E29
-          end
-          object edLEDMaxVoltage: TValidatedEdit
-            Left = 100
-            Top = 29
-            Width = 80
-            Height = 20
-            AutoSize = False
-            Text = ' 5 V'
-            Value = 5.000000000000000000
-            Scale = 1.000000000000000000
-            Units = 'V'
-            NumberFormat = '%.4g'
-            LoLimit = -1.000000015047466E29
-            HiLimit = 1.000000015047466E29
           end
         end
         object lsTIRFGrp: TGroupBox
@@ -932,7 +933,7 @@ object SetupFrm: TSetupFrm
           Top = 158
           Width = 250
           Height = 187
-          Caption = ' Lasers '
+          Caption = ' LED/Lasers '
           Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -971,10 +972,10 @@ object SetupFrm: TSetupFrm
             Top = 16
             Width = 232
             Height = 121
-            ActivePage = Laser3Tab
+            ActivePage = Laser2Tab
             TabOrder = 0
             object Laser1Tab: TTabSheet
-              Caption = 'Laser 1'
+              Caption = 'LED/Laser 1'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -1104,7 +1105,7 @@ object SetupFrm: TSetupFrm
               end
             end
             object Laser2Tab: TTabSheet
-              Caption = 'Laser 2'
+              Caption = 'LED/Laser 2'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -1235,7 +1236,7 @@ object SetupFrm: TSetupFrm
               end
             end
             object Laser3Tab: TTabSheet
-              Caption = 'Laser 3'
+              Caption = 'LED/Laser 3'
               Font.Charset = ANSI_CHARSET
               Font.Color = clWindowText
               Font.Height = -11
@@ -1372,8 +1373,9 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 1
+            OnChange = cbLSLaserStartChange
           end
           object cbLSLaserEnd: TComboBox
             Left = 128
@@ -1381,8 +1383,9 @@ object SetupFrm: TSetupFrm
             Width = 110
             Height = 22
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 2
+            OnChange = cbLSLaserStartChange
           end
         end
       end
@@ -1471,7 +1474,7 @@ object SetupFrm: TSetupFrm
             Width = 145
             Height = 22
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
           end
           object rbLSShutterActiveHigh: TRadioButton
@@ -1559,7 +1562,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 0
         end
         object cbVCommand1: TComboBox
@@ -1568,7 +1571,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 1
         end
         object cbVCommand2: TComboBox
@@ -1577,7 +1580,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 2
         end
       end
@@ -1628,7 +1631,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 0
         end
         object cbDigitalStimEnd: TComboBox
@@ -1637,7 +1640,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 1
         end
       end
@@ -1703,7 +1706,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 0
             end
             object cbPhotoStimY: TComboBox
@@ -1712,7 +1715,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 1
             end
           end
@@ -1752,7 +1755,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 0
             end
             object cbPhotoStimIntensity2: TComboBox
@@ -1761,7 +1764,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 1
             end
             object cbPhotoStimIntensity3: TComboBox
@@ -1770,7 +1773,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 2
             end
           end
@@ -1831,7 +1834,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 0
             end
             object edPhotoStimShutterLatency: TValidatedEdit
@@ -1888,7 +1891,7 @@ object SetupFrm: TSetupFrm
               Width = 113
               Height = 22
               Style = csDropDownList
-              ItemHeight = 0
+              ItemHeight = 14
               TabOrder = 0
             end
           end
@@ -1944,7 +1947,7 @@ object SetupFrm: TSetupFrm
           Width = 121
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 0
         end
         object cbADCInputMode: TComboBox
@@ -1952,7 +1955,7 @@ object SetupFrm: TSetupFrm
           Top = 42
           Width = 121
           Height = 22
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 1
           Text = 'cbADCInputMode'
         end
@@ -2016,7 +2019,7 @@ object SetupFrm: TSetupFrm
           Width = 110
           Height = 22
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 14
           TabOrder = 1
         end
       end

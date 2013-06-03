@@ -25,6 +25,8 @@ unit SetupUnit;
 // 30.04.12 JD Clocked digital outputs of X series devices (634X,635X,636X) now detected
 //             Reset Boards no longer results in repeated digital stimulus output lists
 // 03.04.13 JD Z stage control DAC channel can now be set to none.
+// 31.05.13 JD Placement of light source settings panel tidied up
+// 03.06.13 JD LED/laser 2 & 3 settings now only visible if enough DAC control lines selected
 
 interface
 
@@ -258,11 +260,14 @@ type
     procedure bResetDevicesClick(Sender: TObject);
     procedure cbCameraModeChange(Sender: TObject);
     procedure cbCameraADCChange(Sender: TObject);
+    procedure cbLSLaserStartChange(Sender: TObject);
   private
     { Private declarations }
     CameraOpenRequired : Boolean ;
     procedure NewCamera ;
     procedure NewInterfaceCards ;
+    procedure DisplayLightSourceSettingsPanels ;
+    procedure ShowLaserSettings ;
   public
     { Public declarations }
   end;
@@ -327,11 +332,10 @@ begin
 
      // Get list of light sources
      LightSource.GetList( cbLightSource.Items ) ;
-     cbLightSource.ItemIndex := LightSource.DeviceType ;
-     LSCalGrp.Visible := LightSource.UsercalibrationRequired ;
-     LSLaserGrp.Visible := LightSource.LaserSettingsRequired ;
-     LSLEDGrp.Visible := LightSource.LEDSettingsRequired ;
-     LSTIRFGrp.Visible := LightSource.TIRFSettingsRequired ;
+     cbLightSource.ItemIndex := cbLightSource.Items.IndexOfObject(TObject(LightSource.DeviceType)) ;
+
+     // Display light source settings panels
+     DisplayLightSourceSettingsPanels ;
 
      // Set wavelength calibration values (for user-calibrated monochromators)
      edWavelength1.Value := LightSource.Wavelength1 ;
@@ -357,6 +361,8 @@ begin
      edLaser3OffVoltage.Value := LightSource.LaserOffVoltage[3] ;
      edLaser3OnVoltage.Value := LightSource.LaserOnVoltage[3] ;
      edLaser3Intensity.Value := LightSource.LaserIntensity[3] ;
+
+     ShowLaserSettings ;
 
      // LED control settings
      edLEDOffVoltage.Value := LightSource.LEDOffVoltage ;
@@ -403,6 +409,49 @@ begin
      // Auto reset interface cards
      ckAutoReset.Checked := MainFrm.AutoResetInterfaceCards ;
 
+     end ;
+
+procedure TSetupFrm.DisplayLightSourceSettingsPanels ;
+// ------------------------------------------------------------
+// Display appropriate settings panels for current light source
+// ------------------------------------------------------------
+var
+    iTop,iLeft : Integer ;
+begin
+
+     LSCalGrp.Visible := LightSource.UsercalibrationRequired ;
+     LSLaserGrp.Visible := LightSource.LaserSettingsRequired ;
+     LSLEDGrp.Visible := LightSource.LEDSettingsRequired ;
+     LSTIRFGrp.Visible := LightSource.TIRFSettingsRequired ;
+
+     iTop := cbLightSource.Top + cbLightSource.Height + 5 ;
+     iLeft := cbLightSource.Left ;
+
+     if LSCalGrp.Visible then begin
+        LSCalGrp.Top := iTop ;
+        LSCalGrp.Left := iLeft ;
+        iTop := iTop + LSCalGrp.Height + 2 ;
+        end ;
+     if LSLEDGrp.Visible then begin
+        LSLEDGrp.Top := iTop ;
+        LSLEDGrp.Left := iLeft ;
+        iTop := iTop + LSLEDGrp.Height + 2 ;
+        end ;
+     if LSTIRFGrp.Visible then begin
+        LSTIRFGrp.Top := iTop ;
+        LSTIRFGrp.Left := iLeft ;
+        iTop := iTop + LSTIRFGrp.Height + 2 ;
+        end ;
+
+     LSWaveGrp.Top := iTop ;
+     LSWaveGrp.Left := iLeft ;
+     iTop := iTop + LSWaveGrp.Height + 2 ;
+
+     if LSLaserGrp.Visible then begin
+        LSLaserGrp.Top := iTop ;
+        LSLaserGrp.Left := iLeft ;
+        iTop := iTop + LSLaserGrp.Height + 2 ;
+        end ;
      end ;
 
 
@@ -870,7 +919,7 @@ begin
                                        cbClockSynchronisation.ItemIndex]) ;
 
     // User-calibrated monochromator settings
-    LightSource.DeviceType := cbLightSource.ItemIndex ;
+    LightSource.DeviceType := Integer(cbLightSource.Items.Objects[cbLightSource.ItemIndex]) ;
     LightSource.Wavelength1 := edWavelength1.Value ;
     LightSource.Voltage1 := edVoltage1.Value ;
     LightSource.Wavelength2 := edWavelength2.Value ;
@@ -1026,13 +1075,10 @@ procedure TSetupFrm.cbLightSourceChange(Sender: TObject);
 // --------------------
 begin
 
-     LightSource.DeviceType := cbLightSource.ItemIndex ;
-     LSCalGrp.Visible := LightSource.UsercalibrationRequired ;
-     LSWaveGrp.Visible := LightSource.WavelengthControlRequired ;
-//     LSShutterGrp.Visible := True ;
-     LSLaserGrp.Visible := LightSource.LaserSettingsRequired ;
-     LSLEDGrp.Visible := LightSource.LEDSettingsRequired ;
-     LSTIRFGrp.Visible := LightSource.TIRFSettingsRequired ;
+     LightSource.DeviceType := Integer(cbLightSource.Items.Objects[cbLightSource.ItemIndex]) ;
+
+     // Display light source settings panels
+     DisplayLightSourceSettingsPanels ;
 
      // Set camera trigger offset with default value for light source
      edCameraTriggerOffset.Value := LightSource.WavelengthChangeTime ;
@@ -1141,5 +1187,24 @@ begin
 
      end;
 
+
+procedure TSetupFrm.ShowLaserSettings ;
+var
+    iStart,iEnd,nLasers : Integer ;
+begin
+    iStart := Integer(cbLSLaserStart.Items.Objects[cbLSLaserStart.ItemIndex]) ;
+    iEnd := Integer(cbLSLaserEnd.Items.Objects[cbLSLaserEnd.ItemIndex]) ;
+    nLasers := (LabIO.Resource[iEnd].StartChannel - LabIO.Resource[iStart].StartChannel) + 1 ;
+    Laser1Tab.TabVisible := True ;
+    if nLasers >= 2 then Laser2Tab.TabVisible := True
+                    else Laser2Tab.TabVisible := False ;
+    if nLasers >= 3 then Laser3Tab.TabVisible := True
+                    else Laser3Tab.TabVisible := False ;
+    end ;
+
+procedure TSetupFrm.cbLSLaserStartChange(Sender: TObject);
+begin
+    ShowLaserSettings ;
+    end;
 
 end.

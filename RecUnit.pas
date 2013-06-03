@@ -1102,7 +1102,6 @@ begin
 
    MainFrm.StatusBar.SimpleText := 'Wait ... Starting camera' ;
 
-//   outputdebugString(PChar(format('camera started %d',[Numframesdone]))) ;
    CameraRunning := False ;
 
    // Set camera trigger mode
@@ -1364,6 +1363,12 @@ begin
         Andor : begin
            NumFramesInBuffer :=  (20000000 div
                                         (NumPixelsPerFrame*MainFrm.Cam1.NumBytesPerPixel))-1 ;
+           end ;
+
+        AndorSDK3 : begin
+           NumFramesInBuffer :=  (100000000 div
+                                        (NumPixelsPerFrame*MainFrm.Cam1.NumBytesPerPixel))-1 ;
+
            end ;
 
         RS_PVCAM : begin
@@ -1893,6 +1898,19 @@ begin
     // Stop A/D device
     if ADCDevice > 0 then LabIO.StopADC(ADCDevice) ;
 
+
+    // Free buffers
+    for Device := 1 to LabIO.NumDevices do begin
+         if DACBufs[Device] <> Nil then begin
+            FreeMem(DACBufs[Device]) ;
+            DACBufs[Device] := Nil ;
+            end ;
+         if DIGBufs[Device] <> Nil then begin
+            FreeMem(DIGBufs[Device]) ;
+            DIGBufs[Device] := Nil ;
+            end ;
+         end ;
+
     end ;
 
 
@@ -2237,7 +2255,6 @@ begin
                  if j >= DACBufSize then j := j - DACBufSize
                  else if j < 0 then j := j + DACBufSize ;
 
-                   //outputdebugstring(pchar(format('Dev=%d j=%d',[dev,j]))) ;
                  DACBufs[Dev]^[j] := DACValue ;
                  j := j + NumDACChannels ;
                  end ;
@@ -2932,7 +2949,6 @@ begin
         ADCWriteBuffer := 0 ;
         ADCActiveBuffer := 0 ;
          FirstCall := False ;
-         //outputdebugString(PChar('First call')) ;
         end
      else ADCActiveBuffer := ADCOldestScan ;//- 1 ;
 
@@ -3093,7 +3109,6 @@ begin
        (cbRecordingMode.ItemIndex = rmTimelapseBurst) and
        (not BurstIlluminationOn) and
        (FrameRateCounter >= StartIllumination) then begin
-       outputdebugstring(pchar(format('%d %d %d',[TimeLapseFrameCounter,StartBurstAtFrame,StartIllumination])));
        BurstIlluminationOn := True ;
        UpdateLightSource ;
        end ;
@@ -3120,8 +3135,6 @@ begin
 
            // Keep frame within buffer
            if FrameNum >= NumFramesInBuffer then FrameNum := 0 ;
-
-//           outputdebugString(PChar(format('frame num %d',[FrameNum]))) ;
 
            // Set pointer to flag pixel
            iFlag :=  FrameNum*NumPixelsPerFrame ;
@@ -3164,7 +3177,6 @@ begin
                  end ;
 
               Inc(NumFramesTotal) ;
-              //outputdebugstring(pchar(format('NumFramesTotal %d',[NumFramesTotal])));
 
               // Most recent available frames (indexed by type)
               LatestFrames[FrameType] := FrameNum  ;
@@ -3252,7 +3264,7 @@ begin
                                MainFrm.LUTs[FrameTypeToBeDisplayed*LUTSize],
                                BitMaps[FrameTypeToBeDisplayed],
                                Images[FrameTypeToBeDisplayed] ) ;
-                 outputdebugstring(pchar(format('%d',[LatestFrames[FrameTypeToBeDisplayed]])));
+                 //outputdebugstring(pchar(format('%d',[LatestFrames[FrameTypeToBeDisplayed]])));
                  //FrameDisplayed[LatestFrames[FrameTypeToBeDisplayed]] := LatestFrames[FrameTypeToBeDisplayed] ;
                  LatestFramesDisplayed[FrameTypeToBeDisplayed] := True ;
                  end ;
@@ -3806,7 +3818,6 @@ begin
     Image.Picture.Assign(BitMap) ;
 
     // Draw rectangle round selected capture region
-    //Image.Canvas.FrameRect(CaptureRegion) ;
     DrawCaptureRegion( Image.Canvas, CaptureRegion ) ;
 
     // Draw ROIs
@@ -4129,6 +4140,12 @@ begin
         MainFrm.IDRFile.ZSpacing := 1.0 ;
         end ;
 
+     // Turn on excitation if required while recording
+     if ckExcitationOnWhenRecording.Checked then begin
+        rbEXCShutterOpen.Checked := True ;
+        rbEXCShutterClosed.Checked := False ;
+        end ;
+
      MainFrm.Recording := True ;
      bRecord.Enabled := False ;
      bStop.Enabled := True ;
@@ -4139,12 +4156,6 @@ begin
      TimeLapsePanel.Enabled := False ;
      BurstModePanel.Enabled := False ;
      ckAutoOptimise.Checked := False ;       // Turn off auto-contrast while recording
-
-     // Turn on excitation if required while recording
-     if ckExcitationOnWhenRecording.Checked then begin
-        rbEXCShutterOpen.Checked := True ;
-        rbEXCShutterClosed.Checked := False ;
-        end ;
 
      if MainFrm.IDRFile.NumMarkers < MaxMarker then bMark.Enabled := True ;
      RecordingMode := rmRecordingInProgress ;

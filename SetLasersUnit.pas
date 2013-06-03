@@ -3,26 +3,30 @@ unit SetLasersUnit;
 // Set intensity of lasers (Optoscan + Lasers light source
 // ---------------------------------------------------------
 // 10.03.09 Laser intensity can now be set from live image window
+// 31.5.13 JD Only slider from available laser now visible
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ValidatedEdit;
+  Dialogs, StdCtrls, ValidatedEdit, ExtCtrls;
 
 type
   TSetLasersFrm = class(TForm)
     LasersGrp: TGroupBox;
-    edLaser1Intensity: TValidatedEdit;
-    Label31: TLabel;
-    Label1: TLabel;
-    edLaser2Intensity: TValidatedEdit;
-    Label2: TLabel;
-    edLaser3Intensity: TValidatedEdit;
-    sbLaser1: TScrollBar;
-    sbLaser2: TScrollBar;
-    sbLaser3: TScrollBar;
     bOK: TButton;
     bCancel: TButton;
+    panLaser1: TPanel;
+    Label31: TLabel;
+    sbLaser1: TScrollBar;
+    edLaser1Intensity: TValidatedEdit;
+    panLaser3: TPanel;
+    Label1: TLabel;
+    sbLaser2: TScrollBar;
+    edLaser2Intensity: TValidatedEdit;
+    panLaser2: TPanel;
+    Label2: TLabel;
+    sbLaser3: TScrollBar;
+    edLaser3Intensity: TValidatedEdit;
     procedure FormShow(Sender: TObject);
     procedure bOKClick(Sender: TObject);
     procedure sbLaser1Change(Sender: TObject);
@@ -48,7 +52,15 @@ uses LightSourceUnit, Main, RecUnit, SnapUnit;
 {$R *.dfm}
 
 procedure TSetLasersFrm.FormShow(Sender: TObject);
+// ---------------------------------------
+// Initialise controls when form displayed
+// ---------------------------------------
 begin
+
+     panLaser1.Visible :=  LightSource.LaserAvailable[1] ;
+     panLaser2.Visible :=  LightSource.LaserAvailable[2] ;
+     panLaser3.Visible :=  LightSource.LaserAvailable[3] ;
+
      sbLaser1.Position := Round(LightSource.LaserIntensity[1]) ;
      edLaser1Intensity.Value := sbLaser1.Position ;
      sbLaser2.Position := Round(LightSource.LaserIntensity[2]) ;

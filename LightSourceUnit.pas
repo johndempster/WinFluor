@@ -25,6 +25,9 @@ unit LightSourceUnit;
 // 19.03.09 JD OptoScanWithLasers, Optoscan bandwidth kept constant when lasers selected
 //             Laser 1 shutter now works
 // 15.12.10 JD Support for Cairn TIRF system (supplied to Nigel Emptage) added
+// 23.05.13 JD Till monochromator wavelength range now 0-10000
+// 31.05.13 JD Monochromator + Laser/LED light source added
+// 03.06.13 JD Monochromator + Laser/LED light source now working
 
 interface
 
@@ -45,6 +48,7 @@ const
     lsOptoscanWithLasers = 7 ;
     lsSutterDG4 = 8 ;
     lsCairnTIRF = 9 ;
+    lsTillWithLasers = 10 ;
     lsMaxVControl = 199 ;
 
     lsMaxLasers = 3 ;
@@ -76,6 +80,12 @@ type
               ) ;
 
     procedure TillWavelengthToVoltage(
+          Wavelength : Single ;
+          var VControl : Array of TLSVControl ;
+          var NumVControl : Integer
+          ) ;
+
+    procedure TillWithLasersWavelengthToVoltage(
           Wavelength : Single ;
           var VControl : Array of TLSVControl ;
           var NumVControl : Integer
@@ -136,6 +146,7 @@ type
     LaserOffVoltage: Array[1..lsMaxLasers] of Single ;
     LaserOnVoltage: Array[1..lsMaxLasers] of Single ;
     LaserIntensity: Array[1..lsMaxLasers] of Single ;
+    LaserAvailable: Array[1..lsMaxLasers] of Boolean ;
 
     // TIRF angle galvo control voltages
     TIRFOff: Array[1..lsMaxTIRFGalvos] of Single ; // Off position
@@ -188,17 +199,19 @@ procedure TLightSource.GetList( List : TStrings ) ;
 // Get list of supported light sources
 // -----------------------------------
 begin
+
      List.Clear ;
-     List.Add('None') ;
-     List.Add('Cairn Optoscan (1200)') ;
-     List.Add('Cairn Optoscan (1800)') ;
-     List.Add('Cairn Optoscan (2000)') ;
-     List.Add('Till monochromator') ;
-     List.Add('Sutter Lambda-10') ;
-     List.Add('LED') ;
-     List.Add('OptoScan + Lasers') ;
-     List.Add('Sutter DG4') ;
-     List.Add('Cairn TIRF') ;
+     List.AddObject('None',TObject(lsNone)) ;
+     List.AddObject('Cairn Optoscan (1200)',TObject(lsOptoScan1200)) ;
+     List.AddObject('Cairn Optoscan (1800)',TObject(lsOptoScan1800 )) ;
+     List.AddObject('Cairn Optoscan (2000)',TObject(lsOptoScan2000)) ;
+     List.AddObject('PTI/Till monochromator',TObject(lsTill)) ;
+     List.AddObject('Sutter Lambda-10',TObject(lsLambda10)) ;
+     List.AddObject('LED',TObject(lsLED)) ;
+     List.AddObject('Cairn OptoScan + LED/Lasers',TObject(lsOptoscanWithLasers)) ;
+     List.AddObject('Sutter DG4',TObject(lsSutterDG4)) ;
+     List.AddObject('Cairn TIRF',TObject(lsCairnTIRF)) ;
+     List.AddObject('PTI/Till monochromator + LED/Laser',TObject(lsTillWithLasers)) ;
 
      end ;
 
@@ -214,6 +227,7 @@ begin
         lsOptoScan2000,
         lsOptoscanWithLasers : Result := 0.001 ;
         lsTill : Result := 0.001 ;
+        lsTillWithLasers : Result := 0.001 ;
         lsLambda10 : Result := 0.1 ;
         lsLED : Result := 0.0 ;
         lsSutterDG4 : Result := 0.001 ;
@@ -252,7 +266,8 @@ begin
             Result := 300 ; //MinWavelength ;
             end ;
 
-        lsTill : Result := 305.0 ;
+        lsTill : Result := 0.0 ;
+        lsTillWithLasers : Result := 0.0 ;
         lsLambda10 : Result := 0.0 ;
         lsLED : Result := 0.0 ;
         lsSutterDG4 : Result := 0.0 ;
@@ -297,7 +312,8 @@ begin
             Result := 3000 ; //MaxWavelength ;
             end ;
 
-        lsTill : Result := 693.5 ; //original value 550; changed 14.12.2007 M.Ascherl
+        lsTill : Result := 10000.0 ; // 23/5/13 widened to allow other monos original value 550; changed 14.12.2007 M.Ascherl
+        lsTillWithLasers : Result := 10000.0 ;
         lsLambda10 : Result := 0.0 ;
         lsLED : Result := 0.0 ;
         lsSutterDG4 : Result := 0.0 ;
@@ -316,18 +332,20 @@ function TLightSource.UserCalibrationRequired : Boolean ;
 begin
     case DeviceType of
         lsTill : Result := True ;
+        lsTillWithLasers : Result := True ;
         else Result := False ;
         end ;
     end ;
 
 
 function TLightSource.LaserSettingsRequired : Boolean ;
-// ---------------------------------------------------------
+// ------------------------------------------------
 // Returns TRUE if used must supply laser settings
-// ---------------------------------------------------------
+// ------------------------------------------------
 begin
     case DeviceType of
         lsOptoscanWithLasers : Result := True ;
+        lsTillWithLasers : Result := True ;
         else Result := False ;
         end ;
     end ;
@@ -366,6 +384,7 @@ begin
         lsOptoScan1200,lsOptoScan1800,lsOptoScan2000 : Result := True ;
         lsOptoscanWithLasers : Result := True ;
         lsTill : Result := True ;
+        lsTillWithLasers : Result := True ;
         lsLambda10 : Result := True ;
         lsLED : Result := True ;
         lsSutterDG4 : Result := True ;
@@ -384,6 +403,7 @@ begin
         lsOptoScan1200,lsOptoScan1800,lsOptoScan2000 : Result := false ;
         lsOptoscanWithLasers : Result := false ;
         lsTill : Result := false ;
+        lsTillWithLasers : Result := False ;
         lsLambda10 : Result := True ;
         lsLED : Result := false ;
         lsSutterDG4 : Result := False ;
@@ -401,6 +421,7 @@ begin
         lsOptoScan1200,lsOptoScan1800,lsOptoScan2000 : Result := True ;
         lsOptoscanWithLasers : Result := True ;
         lsTill : Result := True ;
+        lsTillWithLasers : Result := True ;
         lsLambda10 : Result := False ;
         lsLED : Result := false ;
         lsCairnTIRF : Result := True ;
@@ -418,6 +439,7 @@ begin
         lsOptoScan1200,lsOptoScan1800,lsOptoScan2000 : Result := True ;
         lsOptoscanWithLasers : Result := True ;
         lsTill : Result := True ;
+        lsTillWithLasers : Result := True ;
         lsLambda10 : Result := False ;
         lsLED : Result := False ;
         lsSutterDG4 : Result := False ;
@@ -436,6 +458,7 @@ begin
         lsOptoScan1200,lsOptoScan1800,lsOptoScan2000 : Result := 0.0 ;
         lsOptoscanWithLasers : Result := 0.0 ;
         lsTill : Result := 0.0 ;
+        lsTillWithLasers : Result := 0.0 ;
         lsLambda10 : Result := 0.0 ;
         lsLED : Result := 0.0 ;
         lsSutterDG4 : Result := 0.0 ;
@@ -480,6 +503,13 @@ begin
                                      VControl,
                                      NumVControl ) ;
             end ;
+
+        lsTillWithLasers : begin
+            TillWithLasersWavelengthToVoltage( Wavelength,
+                                               VControl,
+                                               NumVControl ) ;
+            end ;
+
         lsLambda10 : Begin
             Lambda10FilterNumToVoltage( FilterNum,
                                         VControl,
@@ -548,6 +578,13 @@ begin
 
         lsTill : begin
             TillWavelengthToVoltage(
+            LightSource.ShutterClosedWavelength,
+                                     VControl,
+                                     NumVControl ) ;
+            end ;
+
+        lsTillWithLasers : begin
+            TillWithLasersWavelengthToVoltage(
             LightSource.ShutterClosedWavelength,
                                      VControl,
                                      NumVControl ) ;
@@ -684,14 +721,10 @@ procedure TLightSource.TillWavelengthToVoltage(
 // Get Till control voltages for selected wavelength
 // ---------------------------------------------------
 const
-    WavelengthMin = 305.0 ;
-    WavelengthMax = 693.5;  //original value 550.0; changed 14.12.2007 M.Ascherl
-    //Wavelength0 = 340.0 ;
-    //V0 = -2.25 ;
-    //Wavelength1 = 495.0 ;
-    //V1 = 0.2 ;
+    WavelengthMin = 0.0 ;
+    WavelengthMax = 10000.0 ;
 var
-     VScale : Single ;
+     VScale,VMono : Single ;
 begin
 
      // No. of channels available to control light source
@@ -704,21 +737,140 @@ begin
      if Wavelength > WavelengthMax then Wavelength := WavelengthMax ;
      if Abs(Wavelength2 - Wavelength1) > 0.1 then begin
         VScale := (Voltage2 - Voltage1) / (Wavelength2 - Wavelength1) ;
-        VControl[0].Chan := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].StartChannel ;
-        VControl[0].V := (Wavelength - Wavelength1)*VScale + Voltage1 ;
-        VControl[0].Delay := 0.0 ;
-        VControl[0].Device := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].Device ;
-        VControl[0].Name := format('Till Monochromator: Centre Wavelength: : Dev%d:AO%d ',
-                            [VControl[0].Device,VControl[0].Chan]) ;
+        VMono := (Wavelength - Wavelength1)*VScale + Voltage1 ;
         end
-     else begin
-       VControl[0].Chan := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].StartChannel ;
-       VControl[0].V := 0.0 ;
-       VControl[0].Delay := 0.0 ;
-       VControl[0].Device := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].Device ;
-       VControl[0].Name := format('Till Monochromator: Centre Wavelength: : Dev%d:AO%d ',
+     else VMono := 0.0 ;
+
+     VControl[0].Chan := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].StartChannel ;
+     VControl[0].V := VMono ;
+     VControl[0].Delay := 0.0 ;
+     VControl[0].Device := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].Device ;
+     VControl[0].Name := format('Till Monochromator: Centre Wavelength: : Dev%d:AO%d ',
                             [VControl[0].Device,VControl[0].Chan]) ;
-       end ;
+     end ;
+
+procedure TLightSource.TillWithLasersWavelengthToVoltage(
+          Wavelength : Single ;
+          var VControl : Array of TLSVControl ;  // Control voltages (out)
+          var NumVControl : Integer         // No. of control voltages (out)
+          ) ;
+// ------------------------------------------------------------------------------
+// Return PTI/Till monochromator & laser control voltages for selected wavelength
+// ------------------------------------------------------------------------------
+const
+    GratingDAC = 0 ;        // Till
+    Laser1DAC = 1 ;          // Laser #1 Intensity control
+    Laser2DAC = 2 ;          // Laser #2 Intensity control
+    Laser3DAC = 3 ;          // Laser #3 Intensity control
+    Laser1Shutter = 4 ;      // Laser #1 shutter control
+
+    // Values added to wavelength to select laser
+    Laser1Value = 1000.0 ;
+    Laser2Value = 10000.0 ;
+    Laser3Value = 100000.0 ;
+    TillWavelengthMin = 100.0 ;
+
+var
+     NumVMono : Integer ;
+     DValue : Double ;
+     NumLines : DWord ;
+     LaserDAC : Integer ;
+     i : Integer ;
+     MonoWavelength,VScale,VMono : Double ;
+     LaserOn : Array[1..lsMaxLasers] of Boolean ;
+     iVControl : Integer ;
+begin
+
+     // No. of channels available to control Till
+     NumVMono := LabIO.Resource[MainFrm.IOConfig.LSWavelengthEnd].StartChannel -
+                      LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].StartChannel + 1 ;
+     NumVMono := Min(NumVMono,1) ;
+
+     // No. of channels available to control lasers
+     NumVControl := NumVMono +
+                    LabIO.Resource[MainFrm.IOConfig.LSLaserEnd].StartChannel -
+                    LabIO.Resource[MainFrm.IOConfig.LSLaserStart].StartChannel + 1 ;
+     NumVControl := Min(NumVControl,4) ;
+
+     // Set available lasers
+     for i := 1 to lsMaxLasers do begin
+         if i <= (NumVControl - NumVMono) then LaserAvailable[i] := True
+                                          else LaserAvailable[i] := False ;
+         end ;
+
+     // Determine which lasers are on
+     // Wavelength = Till + Laser 1 + Laser 2 + Laser 3
+     // Laser 1 = 1000
+     // Laser 2 = 10000
+     // Laser 3 = 100000
+
+     MonoWavelength := Wavelength ;
+     for i := 1 to High(LaserOn) do LaserOn[i] := False ;
+     if MonoWavelength >= Laser3Value then begin
+        LaserOn[3] := True ;
+        MonoWavelength := MonoWavelength - Laser3Value ;
+        end ;
+     if MonoWavelength >= Laser2Value then begin
+        LaserOn[2] := True ;
+        MonoWavelength := MonoWavelength - Laser2Value ;
+        end ;
+     if MonoWavelength >= Laser1Value then begin
+        LaserOn[1] := True ;
+        MonoWavelength := MonoWavelength - Laser1Value ;
+        end ;
+
+     // If monochromator wavelength < minimum, set to shutter closed wavelength
+     if MonoWavelength <= WavelengthMin then begin
+        MonoWavelength := LightSource.ShutterClosedWavelength ;
+        end ;
+
+     // Initialise VControl index
+     iVControl := 0 ;
+
+     // Set monochromator centre wavelength
+
+     if iVControl < NumVMono then begin
+       MonoWavelength := Max(Min(MonoWavelength,WavelengthMax),WavelengthMin) ;
+       if Abs(Wavelength2 - Wavelength1) > 0.1 then begin
+          VScale := (Voltage2 - Voltage1) / (Wavelength2 - Wavelength1) ;
+          VMono := VScale*(MonoWavelength - Wavelength1) +  + Voltage1 ;
+          end
+       else VMono := 0.0 ;
+        VControl[iVControl].V := VMono ;
+        VControl[iVControl].Delay := 0.0 ;
+        VControl[iVControl].Chan := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].StartChannel
+                                    + GratingDAC ;
+        VControl[iVControl].Device := LabIO.Resource[MainFrm.IOConfig.LSWavelengthStart].Device ;
+        VControl[iVControl].Name := format('Mono: Wavelength: Dev%d:AO%d ',
+                                    [VControl[iVControl].Device,VControl[iVControl].Chan]) ;
+        Inc(iVControl) ;
+        end ;
+
+
+    // Set laser control voltages
+
+    LaserDAC := 0 ;
+    for i := 1 to lsMaxLasers do if (iVControl < NumVControl) then begin
+
+        // Laser delay
+        VControl[iVControl].Delay := LaserDelay[i] ;
+
+        // Set laser voltage
+        if LaserOn[i] then VControl[iVControl].V := LaserVoltage( i, LaserIntensity[i] )
+                      else VControl[iVControl].V := LaserVoltage( i, 0.0 ) ;
+
+        VControl[iVControl].Chan := LabIO.Resource[MainFrm.IOConfig.LSLaserStart].StartChannel
+                                    + LaserDAC ;
+
+        VControl[iVControl].Device := LabIO.Resource[MainFrm.IOConfig.LSLaserStart].Device ;
+
+        VControl[iVControl].Name := format('LED/Laser #%d Intensity: Dev%d:AO%d ',
+                                    [i,VControl[iVControl].Device,VControl[iVControl].Chan]) ;
+
+        Inc(LaserDAC) ;
+        Inc(iVControl) ;
+
+        end ;
 
      end;
 
@@ -839,6 +991,11 @@ begin
                     LabIO.Resource[MainFrm.IOConfig.LSLaserEnd].StartChannel -
                     LabIO.Resource[MainFrm.IOConfig.LSLaserStart].StartChannel + 1 ;
      NumVControl := Min(NumVControl,7) ;
+
+     // Set all lasers available
+     for i := 1 to lsMaxLasers do begin
+         LaserAvailable[i] := True ;
+         end ;
 
      // Set lines/mm of grating
      NumLines := 1200 ;

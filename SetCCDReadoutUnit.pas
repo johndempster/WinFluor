@@ -3,6 +3,7 @@ unit SetCCDReadoutUnit;
 // Enter coordinates of CCD readout region
 // ---------------------------------------
 // 20.02.07 Limits of range now set correctly
+// 22.05.13 Cancel now closes form rather than hides (avoiding form error)
 
 interface
 
@@ -90,7 +91,7 @@ procedure TSetCCDReadoutFrm.bCancelClick(Sender: TObject);
 // Cancel button pressed
 // ---------------------
 begin
-     Hide ;
+     Close
      end;
 
 procedure TSetCCDReadoutFrm.FormClose(Sender: TObject;

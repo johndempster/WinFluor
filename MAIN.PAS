@@ -134,6 +134,10 @@ unit Main;
 //                 RecADCOnlyUnit.pas: Real time display sweep now correctly synchronised to incoming signal
 //                 FileIOUnit.pas: Default protocol folder now selected in folder in INI file not found
 //                 wavgen.pas: SelectDirectory() dialog now used to set voltage protocol folder
+// 15.05.13        NIDAQmx cameras: Mis-setting of CCD maximum width and height fixed.
+// 03.06/13 V3.4.7 Support for Andor SDK 3 cameras addded (tested with Zyla)
+//                 PTI/Till monochromator + LED/Laser light source added
+//                 Memory violation when starting recording with light off and Turn on when recording enabled fixed
 
 interface
 

@@ -1,8 +1,8 @@
 object CameraSettingsFrm: TCameraSettingsFrm
-  Left = 885
-  Top = 785
-  Width = 351
-  Height = 158
+  Left = 778
+  Top = 666
+  Width = 371
+  Height = 164
   Caption = 'Camera Settings'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

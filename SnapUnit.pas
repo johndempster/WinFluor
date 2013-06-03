@@ -1,5 +1,5 @@
 unit SnapUnit;
-// =============================================================================
+// =============================================================================                                
 // WinFluor - Windows Fluoresence Program - Live image display module
 // (c) J. Dempster, University of Strathclyde, 2001-8, All Rights Reserved
 // =============================================================================
@@ -246,6 +246,16 @@ type
     procedure ShowHideShadeCorSettingsPanel ;
     procedure DoShadingCorrection ;
 
+    procedure DrawCaptureRegion(
+            Canvas : TCanvas ;
+            SelectedRect : TRect
+            ) ;
+    procedure DrawSquare(
+            Canvas : TCanvas ;
+            X : Integer ;
+            Y : Integer ) ;
+
+
   public
     { Public declarations }
     { Public declarations }
@@ -296,8 +306,8 @@ const
     ByteLoValue = 0 ;
     ByteHiValue = 255 ;
     WordLoValue = 0 ;
-    WordHiValue = 32767 ;
-    EmptyFlag = 32767 ;
+    WordHiValue = $FFFF ;
+    //EmptyFlag = 32767 ;
     NormaliseToMean = 0 ;
     NormaliseToMin = 1 ;
     NormaliseToMax = 2 ;
@@ -700,6 +710,16 @@ begin
            NumFramesInBuffer :=  (20000000 div
                                         (NumPixelsPerFrame*MainFrm.Cam1.NumBytesPerPixel))-1 ;
            if NumFramesInBuffer > 36 then NumFramesInBuffer := 36 ;
+           end ;
+
+        AndorSDK3 : begin
+           NumFramesInBuffer :=  (20000000 div
+                                        (NumPixelsPerFrame*MainFrm.Cam1.NumBytesPerPixel))-1 ;
+           if NumFramesInBuffer > 36 then NumFramesInBuffer := 36 ;
+           NumFramesInBuffer := 16 ;
+           NumFramesInBuffer := Min( (Round(2.0/edFrameInterval.Value) div 2)*2,
+                                      (200000000 div (NumPixelsPerFrame*MainFrm.Cam1.NumBytesPerPixel))-1) ;
+
            end ;
 
         RS_PVCAM : begin
@@ -1288,7 +1308,7 @@ begin
     Image.Picture.Assign(BitMap) ;
 
     // Draw rectangle round selected capture region
-    Image.Canvas.FrameRect(CaptureRegion) ;
+    DrawCaptureRegion( Image.Canvas, CaptureRegion ) ;
 
     ImageAvailable := True ;
 
@@ -1299,6 +1319,64 @@ begin
     Inc(FrameCounter) ;
 
     end ;
+
+
+procedure TSnapFrm.DrawCaptureRegion(
+          Canvas : TCanvas ;
+          SelectedRect : TRect
+          ) ;
+// ------------------------------------------------------
+// Display selected scanning region in full field of view
+// ------------------------------------------------------
+var
+    KeepPenColor,KeepFontColor : Integer ;
+    KeepStyle : TBrushStyle ;
+begin
+
+     KeepPenColor := Canvas.Font.Color ;
+     KeepStyle := Canvas.Brush.Style ;
+     KeepFontColor := Canvas.Font.Color ;
+
+     Canvas.Pen.Color := clwhite ;
+     Canvas.Brush.Style := bsClear ;
+     Canvas.Font.Color := clWhite ;
+
+     // Display zomm area selection rectangle
+     Canvas.Rectangle(SelectedRect);
+
+     // Display square corner and mid-point tags
+     DrawSquare( Canvas, SelectedRect.Left, SelectedRect.Top ) ;
+     DrawSquare( Canvas, (SelectedRect.Left + SelectedRect.Right) div 2, SelectedRect.Top ) ;
+     DrawSquare( Canvas, SelectedRect.Right, SelectedRect.Top ) ;
+     DrawSquare( Canvas, SelectedRect.Left, (SelectedRect.Top + SelectedRect.Bottom) div 2) ;
+     DrawSquare( Canvas, SelectedRect.Right, (SelectedRect.Top + SelectedRect.Bottom) div 2) ;
+     DrawSquare( Canvas, SelectedRect.Left, SelectedRect.Bottom ) ;
+     DrawSquare( Canvas, (SelectedRect.Left + SelectedRect.Right) div 2, SelectedRect.Bottom ) ;
+     DrawSquare( Canvas, SelectedRect.Right, SelectedRect.Bottom ) ;
+
+     Canvas.Font.Color := KeepPenColor ;
+     Canvas.Brush.Style := KeepStyle ;
+     Canvas.Font.Color := KeepFontColor ;
+
+     end ;
+
+
+procedure TSnapFrm.DrawSquare(
+          Canvas : TCanvas ;
+          X : Integer ;
+          Y : Integer ) ;
+var
+    Square : TRect ;
+begin
+     Square.Left := X - 3 ;
+     Square.Right := X + 3 ;
+     Square.Top := Y - 3 ;
+     Square.Bottom := Y + 3 ;
+     //Bitmap.Canvas.Pen.Color := clwhite ;
+     Canvas.Brush.Style := bsSolid ;
+     Canvas.Rectangle(Square);
+
+     end ;
 
 
 procedure TSnapFrm.UpdateImage(
