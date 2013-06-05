@@ -12,7 +12,7 @@ unit WinFluor_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 31/05/2013 14:42:28 from Type Library described below.
+// File generated on 04/06/2013 16:48:07 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: F:\Delphi Projects\WinFluor\WinFluor.tlb (1)

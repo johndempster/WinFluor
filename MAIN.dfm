@@ -4,8 +4,8 @@ object MainFrm: TMainFrm
   Width = 1004
   Height = 725
   Caption = 
-    'WinFluor : Fluorescence Image Capture & Analysis Program V3.4.7 ' +
-    '3-06-13'
+    'WinFluor : Fluorescence Image Capture & Analysis Program V3.4.8 ' +
+    '4-06-13'
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack

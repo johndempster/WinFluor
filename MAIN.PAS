@@ -138,6 +138,8 @@ unit Main;
 // 03.06/13 V3.4.7 Support for Andor SDK 3 cameras addded (tested with Zyla)
 //                 PTI/Till monochromator + LED/Laser light source added
 //                 Memory violation when starting recording with light off and Turn on when recording enabled fixed
+// 04.06.13 V3.4.8 In Record Images & Signals window, stimulus no longer initiated on start of recording when
+//                 Stimulus Start on Record is ticked but no stimulus is available. Voltage protocol folder now selected using SelectDirectory
 
 interface
 

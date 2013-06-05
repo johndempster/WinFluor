@@ -129,6 +129,9 @@ unit RecUnit;
 // 03.04.13 JD Imaging area selection rectangle now made more visible by small squares at corners and middle.
 //             LabIO Analog input and digital outputs now clocked by digital sample clock when no D/A channels in use on timing device
 //             Excitation on/off now restarts camera when not recording to reduce delay on light changing
+// 04.06.13 JD Stimulus no longer initiated on start of recording when Stimulus Start on Record is ticked
+//             but no stimulus is available
+//             Voltage protocol folder now selected using SelectDirectory
 {$DEFINE USECONT}
 
 
@@ -138,7 +141,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, ValEdit, RangeEdit, ScopeDisplay, Spin, shared,
   ValidatedEdit, IDRFile, LabIOUnit, math, StrUtils, ComCtrls, LightSourceUnit, excsetupunit,
-  Menus, Buttons ;
+  Menus, Buttons, filectrl ;
 
 const
     cMaxSamplesInADCBuffer = 100000 ;
@@ -651,7 +654,7 @@ implementation
 uses Main, mmsystem, pvcam, maths, SESCam, FileIOUnit,
   ViewUnit, AmpModule, SealTest , LogUnit,
   StimModule, RecPlotUnit, SetCCDReadoutUnit, SetLasersUnit , SnapUnit,
-  PhotoStimModule, ZStageUnit;
+  PhotoStimModule, ZStageUnit, DirectorySelectUnit;
 
 const
     ByteLoValue = 0 ;
@@ -4305,7 +4308,8 @@ begin
      if ckBackgroundSubtraction.Enabled then KeepBackgroundBufs := True
                                         else KeepBackgroundBufs := False ;
 
-     if ckStartStimOnRecord.Checked then begin
+     // Start stimulus (if required and available)
+     if ckStartStimOnRecord.Checked and (cbStimProgram.ItemIndex > 0) then begin
         StimulusRequired := True ;
         bStartStimulus.Enabled := False ;
         bStopStimulus.Enabled := True ;
@@ -5479,20 +5483,16 @@ begin
 
 
 procedure TRecordFrm.bSetSubFolderClick(Sender: TObject);
-// -----------------------------
+// ---------------------------------
 //  Set voltage protocol file folder
-// -----------------------------
+// ---------------------------------
 begin
-     OpenDialog.FileName := '*' ;
-     OpenDialog.InitialDir := MainFrm.VProtDirectory ;
-     OpenDialog.Title := 'Select protocol file folder' ;
-     if OpenDialog.execute then begin
-        MainFrm.VProtDirectory := ExtractFilePath( OpenDialog.FileName ) ;
-        // Load list of stimulus programs
-        UpdateStimProgramList ;
-        end ;
 
-     end ;
+    SelectDirectory(MainFrm.VProtDirectory, [sdAllowCreate, sdPerformCreate, sdPrompt],0) ;
+    MainFrm.VProtDirectory := MainFrm.VProtDirectory + '\' ;
+    UpdateStimProgramList ;
+
+    end ;
 
 procedure TRecordFrm.bAddROIClick(Sender: TObject);
 // ------------------------------

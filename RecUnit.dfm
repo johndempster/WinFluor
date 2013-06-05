@@ -447,7 +447,7 @@ object RecordFrm: TRecordFrm
             object Label12: TLabel
               Left = 132
               Top = 16
-              Width = 5
+              Width = 6
               Height = 19
               Caption = '-'
               Font.Charset = ANSI_CHARSET
@@ -473,7 +473,7 @@ object RecordFrm: TRecordFrm
             object Label14: TLabel
               Left = 132
               Top = 56
-              Width = 5
+              Width = 6
               Height = 19
               Caption = '-'
               Font.Charset = ANSI_CHARSET
@@ -1403,7 +1403,7 @@ object RecordFrm: TRecordFrm
           object bSetSubFolder: TButton
             Left = 2
             Top = 148
-            Width = 142
+            Width = 151
             Height = 17
             Caption = 'Set Stim. Folder'
             Font.Charset = DEFAULT_CHARSET
@@ -1445,7 +1445,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 0
+            ItemHeight = 14
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbPhotoStimProgramChange
@@ -1541,9 +1541,9 @@ object RecordFrm: TRecordFrm
         Caption = ' Z Stack'
         TabOrder = 1
         object Label21: TLabel
-          Left = 77
+          Left = 76
           Top = 14
-          Width = 36
+          Width = 37
           Height = 14
           Alignment = taRightJustify
           Caption = 'Start At'

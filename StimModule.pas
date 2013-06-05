@@ -384,7 +384,7 @@ begin
      if Prog.NumRepeats > 1 then begin
         // Repeated stimulus
         NumPointsPerRepeat := Round((Prog.RecordInterval*Prog.NumSteps)/MainFrm.ADCScanInterval) ;
-        NumRepeats := Max(NumDACPoints div NumPointsPerRepeat,1) ;
+        NumRepeats := Max(NumDACPoints div Max(NumPointsPerRepeat,1),1) ;
         // adjust interval to fit buffer
         NumPointsPerRepeat := NumDACPoints div NumRepeats ;
         end
@@ -778,7 +778,7 @@ procedure TStimulator.LoadProgram(
 var
    FileHandle : Integer ;
    OldProg : TWaveformOld ;
-   V3216Prog : TWaveformV3216 ;   
+   V3216Prog : TWaveformV3216 ;
    i, j : Integer ;
    NumBytes : Integer ;
 begin
