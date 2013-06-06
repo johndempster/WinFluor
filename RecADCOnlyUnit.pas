@@ -265,8 +265,6 @@ type
              VMin : Single;                            // Minimum voltage
              VMax : Single;                            // Maximum voltage
              Amplitude : Single) : Single ;            // Desired amplitude in mW
-    procedure ToggleVoltageStimulus;  // To address failure of stimulus
-                                      // protocol to start on some rigs
 
     procedure Wait( Delay : Single ) ;
   public
@@ -443,8 +441,6 @@ begin
      Resize ;
 
      StartADC ;
-     // To address failure of stimulus protocol to start on some rigs
-     ToggleVoltageStimulus;
 
      // Start schedule events timer (runs at 50 ms intervals)
      InitialisationComplete := True ;
@@ -2022,8 +2018,6 @@ begin
      if not LabIO.ADCActive[ADCDevice] then begin
         NewDisplaySetup ;
         StartADC ;
-        // To address failure of stimulus protocol to start on some rigs
-        ToggleVoltageStimulus;
         end ;
 
      end;
@@ -2917,21 +2911,6 @@ begin
 procedure TRecADCOnlyFrm.ckRecordADCSignalsOnlyClick(Sender: TObject);
 begin
   MainFrm.RecordADCSignalsOnly := ckRecordADCSignalsOnly.Checked;
-end;
-
-procedure TRecADCOnlyFrm.ToggleVoltageStimulus;
-begin
-  if MainFrm.PhotoStim.Enabled then
-  begin
-    ckPhotoStimEnabled.Checked := False;
-    bStartStimulus.Click;
-    bStopStimulus.Click;
-    ckPhotoStimEnabled.Checked := True;
-  end else
-  begin
-    bStartStimulus.Click;
-    bStopStimulus.Click;
-  end;
 end;
 
 end.
