@@ -1277,7 +1277,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbStimProgramChange
@@ -1445,7 +1445,7 @@ object RecordFrm: TRecordFrm
             Width = 151
             Height = 22
             Hint = 'Stimulation program in current use'
-            ItemHeight = 14
+            ItemHeight = 0
             TabOrder = 0
             Text = 'cbStimProgram'
             OnChange = cbPhotoStimProgramChange

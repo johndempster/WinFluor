@@ -41,6 +41,8 @@ unit LabIOUnit;
 //                  not DACBuf. Fixes access violation when startadc called twice in RecADCOnlyUnit.pas
 //                  Similar change to NIDAQMX_MemoryToDIG()
 // 02.05.13 JD .... InternalBufferDuration added defining duration of internal NIDAQmx DAC and digital waveform buffer
+// 09.07.13 JD .... PCI-6035E and PCI-6036E and now identified as having only one DMA channel (for A/D)
+//                  PCI-6052E identified as having 2 DMA channels.
 
 interface
 
@@ -2581,6 +2583,7 @@ begin
         BoardName[342] :=  'NI 4472 (PCI)' ;
         BoardName[347] :=  'NI 4472 (IEEE-1394)' ;
         BoardName[348] :=  'DAQCard 6036E ' ;
+        BoardName[349] :=  'PCI 6036E ' ;
         BoardName[350] := 'PCI-6733' ;
         BoardName[367] :=  'PCI 6014E' ;
 
@@ -2613,7 +2616,7 @@ begin
           DigitalWaveformCapable[DeviceNum] := False ;
           // Determine no. of DMA channels
           case DeviceBoardType[DeviceNum] of
-          367,269-275,90-91 : DeviceNumDMAChannels[DeviceNum] := 1 ;
+          90..91,267..272,314..317,348..349,367 : DeviceNumDMAChannels[DeviceNum] := 1 ;
           else DeviceNumDMAChannels[DeviceNum] := 2 ;
           end ;
           Inc(NumDevices) ;
@@ -2868,7 +2871,7 @@ begin
           DigitalWaveformCapable[DeviceNum] := False ;
           // Determine no. of DMA channels
           case DeviceBoardType[DeviceNum] of
-          367,269-275,90-91 : DeviceNumDMAChannels[DeviceNum] := 1 ;
+          90..91,267..272,314..317,348..349,367 : DeviceNumDMAChannels[DeviceNum] := 1 ;
           else DeviceNumDMAChannels[DeviceNum] := 2 ;
           end ;
           Inc(NumDevices) ;

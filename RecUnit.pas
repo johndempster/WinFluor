@@ -654,7 +654,7 @@ implementation
 uses Main, mmsystem, pvcam, maths, SESCam, FileIOUnit,
   ViewUnit, AmpModule, SealTest , LogUnit,
   StimModule, RecPlotUnit, SetCCDReadoutUnit, SetLasersUnit , SnapUnit,
-  PhotoStimModule, ZStageUnit, DirectorySelectUnit;
+  PhotoStimModule, ZStageUnit;
 
 const
     ByteLoValue = 0 ;

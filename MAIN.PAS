@@ -140,6 +140,7 @@ unit Main;
 //                 Memory violation when starting recording with light off and Turn on when recording enabled fixed
 // 04.06.13 V3.4.8 In Record Images & Signals window, stimulus no longer initiated on start of recording when
 //                 Stimulus Start on Record is ticked but no stimulus is available. Voltage protocol folder now selected using SelectDirectory
+// 09.07.13 V3.4.9 NI cards: Number of DMA channels now correctly identified with PCI-6035E cards
 
 interface
 
