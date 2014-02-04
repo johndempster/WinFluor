@@ -25,6 +25,8 @@ unit RecADCOnlyUnit;
 //          the Record form will auotmatically open the next default file
 //          (feature request from M. Day)
 // 11.12.12 DE Added brief delay to allow photostimulus shutter to close
+// 18.12.12 DE Added OverlayTrace feature, so previous traces are not erased
+//          but remain displayed in dimmer (Aqua) color
 // 08.01.13 DE Voltage stimulus would not start on some rigs
 //
 // 23.04.13 JD .. Special StartADC() calls when running with NIDAQmx library removed.
@@ -126,6 +128,7 @@ type
     bPlaybackSetup: TButton;
     ckPlaybackEnabled: TCheckBox;
     scADCDisplay: TScopeDisplay;
+    ckOverLayTraces: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -157,6 +160,7 @@ type
     procedure bPlaybackSetupClick(Sender: TObject);
     procedure cbPhotoStimProgramChange(Sender: TObject);
     procedure ckRecordADCSignalsOnlyClick(Sender: TObject);
+    procedure ckOverLayTracesClick(Sender: TObject);
   private
     { Private declarations }
     ADCDevice : SmallInt ;                    // Device # of A/D Converter
@@ -400,7 +404,7 @@ begin
      bRecord.Enabled := True ;
      bStop.Enabled := False ;
      TimerProcBusy := False ;
-     ResetDisplays := False ;
+     ResetDisplays := True;
      bMark.Enabled := False ;
      cbStimProgram.Enabled := True ;
      VHoldGrp.Enabled := True ;
@@ -434,6 +438,7 @@ begin
          end ;
 
      scADCDisplay.FixZeroLevels := ckFixZeroLevels.Checked ;
+     ckOverLayTraces.Checked := MainFrm.OverLayTraces;
 
      NewDisplaySetup ;
 
@@ -1458,6 +1463,7 @@ var
      DACNumScansInBuffer : Integer ;
      Device : Integer ;
      WaitForExtTrigger : Boolean ;
+     SaveNumPoints: Integer;
 begin
 
      if (not ADCRunning) or (not InitialisationComplete) then Exit ;
@@ -1491,7 +1497,9 @@ begin
                                                        LabIO.ADCMaxValue[ADCDevice] ) ;
 
        { Set channel information }
-       for ch := 0 to MainFrm.ADCNumChannels-1 do begin
+       if (not MainFrm.OverLayTraces) or ResetDisplays then
+       begin
+         for ch := 0 to MainFrm.ADCNumChannels-1 do begin
            scADCDisplay.ChanOffsets[ch] := MainFrm.ADCChannel[Ch].ChannelOffset ;
            scADCDisplay.ChanUnits[ch] := MainFrm.ADCChannel[Ch].ADCUnits ;
            scADCDisplay.ChanName[ch] := MainFrm.ADCChannel[Ch].ADCName ;
@@ -1500,7 +1508,8 @@ begin
            scADCDisplay.yMax[ch] := MainFrm.ADCChannel[Ch].yMax ;
            scADCDisplay.HorizontalCursors[ch] := MainFrm.ADCChannel[Ch].ADCZero ;
            scADCDisplay.ChanVisible[ch] := MainFrm.ADCChannel[ch].InUse ;
-           end ;
+         end;
+       end;
 
        // No. of multi-channel scans to be displayed
        NumScans := Max( Round(edTDisplay.Value/MainFrm.ADCScanInterval),2 ) ;
@@ -1531,7 +1540,7 @@ begin
                                           scADCDisplay.NumPoints) * OldTScale /
                                           scADCDisplay.TScale);
            // scADCDisplay.XOffset := 0;
-           RecordingFirstTrace := False;
+           // RecordingFirstTrace := False;
          end;
        end else
          scADCDisplay.XOffset := 0;
@@ -1545,10 +1554,30 @@ begin
 //                            div (ADCNumScansPerBlock*ADCNumChannels) ;
 
        scADCDisplay.NumPoints := 0 ;
-       scADCDisplay.Invalidate ;
+       if MainFrm.OverLayTraces and
+          not RecordingFirstTrace then
+       begin
+         SaveNumPoints := ADCNumBlocksDisplayed * ADCNumPointsPerBlock;
+         for ch := 0 to MainFrm.ADCNumChannels-1 do
+         begin
+           scADCDisplay.ChanColor[ch] := scADCDisplay.GetPreviousTraceColor;
+         end;
+         scADCDisplay.DisplayNewPoints(SaveNumPoints);
+         if MainFrm.Recording then
+           scADCDisplay.RedrawXAxis;
+         scADCDisplay.NumPoints := SaveNumPoints;
+       end else
+       begin
+         scADCDisplay.Invalidate;
+       end;
+       RecordingFirstTrace := False;
 
-       // Clear markers on display
-       scADCDisplay.ClearMarkers ;
+       if ResetDisplays then
+       begin
+         // Clear markers on display
+         scADCDisplay.ClearMarkers ;
+         scADCDisplay.Invalidate;
+       end;
 
        // Initialise counters
        ADCBlockCount := ADCNumScansPerBlock ;
@@ -1558,6 +1587,8 @@ begin
        ResetDisplays := False ;
 
 
+       if MainFrm.OverLayTraces then
+         Wait(0.001);
        end ;
 
      // Load latest A/D samples into ADCBuf
@@ -1800,6 +1831,13 @@ begin
 
         end ;
 
+     if MainFrm.OverLayTraces then
+     begin
+       for ch := 0 to MainFrm.ADCNumChannels-1 do
+       begin
+         scADCDisplay.ChanColor[ch] := scADCDisplay.GetTraceColor;
+       end;
+     end;
      // Display latest points added to display buffer
      scADCDisplay.DisplayNewPoints( ADCNumBlocksDisplayed*ADCNumPointsPerBlock );
      //scADCDisplay.Invalidate ;
@@ -1941,8 +1979,9 @@ begin
     // Set size of signal time course display area
     SignalsGrp.Height :=  ClientHeight - SignalsGrp.Top - 5 ;
     SignalsGrp.Width := ClientWidth - SignalsGrp.Left - 5 ;
-    TDisplayPanel.Top := SignalsGrp.Height - TDisplayPanel.Height - 2 ;
+    TDisplayPanel.Top := SignalsGrp.Height - TDisplayPanel.Height - 27 ;
     ckFixZeroLevels.Top := TDisplayPanel.Top ;
+    ckOverLayTraces.Top := ckFixZeroLevels.Top + 25;
 
     // Set width of time course display components
     scADCDisplay.Width := Max(SignalsGrp.Width - scADCDisplay.Left*2,2) ;
@@ -2821,6 +2860,11 @@ begin
      scADCDisplay.Invalidate ;
      end;
 
+procedure TRecADCOnlyFrm.ckOverLayTracesClick(Sender: TObject);
+begin
+  MainFrm.OverLayTraces := ckOverLayTraces.Checked;
+  scADCDisplay.Invalidate;
+end;
 
 procedure TRecADCOnlyFrm.ZoomOutAll ;
 // --------------------------------------
