@@ -37,7 +37,9 @@ const
     EventListFileExt = '.evl' ;
     MaxEvents = 30000 ;
     // MaxDisplayPoints = 1048576 ;
-    MaxDisplayPoints = 16777216;
+    MaxDisplayPoints = 4194304;
+    // MaxDisplayPoints = 16777216;
+    MaxFLDisplayPoints = 100000;
     DetFluor = 0 ;
     DetFluorRatio = 1 ;
     ADCChannelLimit = 7 ;
@@ -422,9 +424,9 @@ type
     ADCBuf : Array[0..MaxDisplayPoints-1] of SmallInt ;
     AvgADCBuf : Array[0..MaxDisplayPoints-1] of SmallInt ;
     NumFLDisplayScans : Integer ;
-    FLBuf : Array[0..MaxDisplayPoints-1] of SmallInt ;
-    DetBuf : Array[0..MaxDisplayPoints-1] of Integer ;
-    AvgFLBuf : Array[0..MaxDisplayPoints-1] of SmallInt ;
+    FLBuf : Array[0..MaxFLDisplayPoints-1] of SmallInt ;
+    DetBuf: PBig32bitArray;
+    AvgFLBuf : Array[0..MaxFLDisplayPoints-1] of SmallInt ;
 
     procedure UpdateSettings ;
     procedure DisplayEvent( EventNum : Integer ) ;
@@ -446,7 +448,7 @@ var
 implementation
 
 uses Main , ViewUnit, ViewLineUnit, PrintRec, ExportADCEventsUnit,
-  Printgra, PlotSETAXES, IDRFile , ViewPlotUnit, LogUnit;
+  Printgra, PlotSETAXES, IDRFile , ViewPlotUnit, LogUnit, mmsystem;
 
 {$R *.dfm}
 
@@ -462,7 +464,7 @@ procedure TEventAnalysisFrm.FormShow(Sender: TObject);
 var
     i : Integer ;
 begin
-
+    DetBuf := Nil;
     DetDisplayInitialised := False ;
 
     // Update ROI and frame type settings
@@ -965,7 +967,7 @@ begin
     if NumEvents > 0 then DisplayEvent( sbEventNum.Position ) ;
 
     // Update detection display
-    UpdateDetDisplay( True ) ;
+    {UpdateDetDisplay( True ) ;} // Duplicates call at end of FormShow
 
     end;
 
@@ -981,6 +983,9 @@ var
 begin
 
     if cbDetectionSource.ItemIndex < ADCChannelSources then begin
+       if DetBuf <> Nil then FreeMem(DetBuf);
+       DetBuf := Nil;
+       GetMem(DetBuf, MaxFLDisplayPoints*4);
        // Fluorescence channels
        scDetDisplay.MinADCValue := -MainFrm.IDRFile.GreyMax ;
        scDetDisplay.MaxADCValue := MainFrm.IDRFile.GreyMax ;
@@ -1029,6 +1034,9 @@ begin
        end
     else begin
        // Analog channels
+       if DetBuf <> Nil then FreeMem(DetBuf);
+       DetBuf := Nil;
+       GetMem(DetBuf, MaxDisplayPoints*4);
        ADCChan := cbDetectionSource.ItemIndex - ADCChannelSources ;
        scDetDisplay.MinADCValue := -MainFrm.IDRFile.ADCMaxValue ;
        scDetDisplay.MaxADCValue := MainFrm.IDRFile.ADCMaxValue ;
@@ -1107,7 +1115,7 @@ begin
        end ;
     scDetDisplay.ChanVisible[0] := True ;
 
-    scDetDisplay.SetDataBuf( @DetBuf ) ;
+    scDetDisplay.SetDataBuf( DetBuf ) ;
     scDetDisplay.NumBytesPerSample := 4 ;
 
     scDetDisplay.ClearVerticalCursors ;
@@ -1969,7 +1977,7 @@ begin
                                            'Detecting Events: %d events detected %.4g/%.4gs',
                                            [NumEvents,
                                             sbDetDisplay.Position*scDetDisplay.TScale,
-                                            sbDetDisplay.Max*scDetDisplay.TScale]) ;
+                        (sbDetDisplay.Max+scDetDisplay.MaxPoints)*scDetDisplay.TScale]) ;
             NewDisplayNeeded := False ;
             Application.ProcessMessages ;
             end ;
@@ -2021,7 +2029,7 @@ begin
                                            'Detecting Events: %d events detected %.4g/%.4gs',
                                            [NumEvents,
                                             iPoint*scDetDisplay.TScale,
-                                            sbDetDisplay.Max*scDetDisplay.TScale]) ;
+         (sbDetDisplay.Max+scDetDisplay.MaxPoints)*scDetDisplay.TScale]) ;
            Application.ProcessMessages ;
            end
         else begin
@@ -2033,7 +2041,69 @@ begin
               end ;
            end ;
 
-        if sbDetDisplay.Position >= sbDetDisplay.Max then Done := True ;
+        if sbDetDisplay.Position >= sbDetDisplay.Max then
+        begin
+          // We have reached end of display, so no more NewDisplayNeeded
+          while i < scDetDisplay.NumPoints do
+          begin
+            // Update rolling average baseline
+            if rbRollingBaseline.Checked then
+            begin
+              if InitialiseRollingBaseline then
+              begin
+                RollingBaseline := DetBuf[i];
+                InitialiseRollingBaseline := False;
+              end;
+              RBAddFraction := scDetDisplay.TScale /
+                               edRollingBaselinePeriod.Value;
+              RollingBaseline := (1.0-RBAddFraction) * RollingBaseline +
+                                 RBAddFraction*DetBuf[i];
+              yBaseline := Round(RollingBaseline);
+            end;
+
+            // Has signal exceeded threshold ?
+            yDiff := DetBuf[i] - yBaseline;
+            case iPolarity of
+              PositiveGoing : begin
+                  if yDiff >= yThreshold then Inc(ExceedCount)
+                                         else ExceedCount := 0 ;
+                  end ;
+              NegativeGoing : begin
+                  if yDiff <= yThreshold then Inc(ExceedCount)
+                                         else ExceedCount := 0 ;
+                  end ;
+              else begin
+                  if Abs(yDiff) >= Abs(yThreshold) then Inc(ExceedCount)
+                                                   else ExceedCount := 0 ;
+                  end ;
+            end;
+
+            if ExceedCount = 1 then iDetectedAt := i ;
+            if ExceedCount >= NumExceedCountsRequired then
+            begin
+              // Event detected
+              EventList[NumEvents].Time := (iDetectedAt +
+                                   sbDetDisplay.Position)*scDetDisplay.TScale;
+              EventList[NumEvents].Accepted := True;
+              if NumEvents < High(EventList) then Inc(NumEvents);
+              sbEventNum.Max := Max(NumEvents,1);
+              sbEventNum.Position := sbEventNum.Max ;
+              // Set pointer to start detecting again after dead time
+              i := iDetectedAt + Round(edDeadTime.Value/scDetDisplay.TScale);
+              ExceedCount := 0 ;
+              MainFrm.StatusBar.SimpleText := Format(
+                                           'Detecting Events: %d events detected %.4g/%.4gs',
+                                           [NumEvents,
+                                            (sbDetDisplay.Position + i)*scDetDisplay.TScale,
+                                            sbDetDisplay.Max*scDetDisplay.TScale]);
+              Application.ProcessMessages;
+            end else
+            begin
+              Inc(i);
+            end;
+          end;
+          Done := True ;
+        end;
         end ;
 
      sbEventNum.Max := Max(NumEvents,1) ;
@@ -2364,6 +2434,9 @@ procedure TEventAnalysisFrm.FormClose(Sender: TObject;
 // Close form
 // ----------
 begin
+     if DetBuf <> Nil then FreeMem(DetBuf);
+     DetBuf := Nil;
+
      Action := caFree ;
 
      // Save stored settings
