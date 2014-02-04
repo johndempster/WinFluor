@@ -74,7 +74,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'WinFluor V3.4.6';
+  Application.Title := 'WinFluor V3.4.8';
   Application.HelpFile := 'C:\Program Files\Borland\Delphi7\WinFluor\WINFLUOR.chm';
   Application.CreateForm(TMainFrm, MainFrm);
   Application.CreateForm(TAboutBox, AboutBox);
