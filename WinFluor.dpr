@@ -65,6 +65,7 @@ uses
   DigitalFilterUnit in 'DigitalFilterUnit.pas' {DigitalFilterFrm},
   DirectControlUnit in 'DirectControlUnit.pas' {DirectControlFrm},
   HTMLHelpViewer in '..\SESComponents\HTMLHelpViewer.pas',
+  PowerCalibrationUnit in 'PowerCalibrationUnit.pas' {PowerCalibrationFrm},
   Maths in '..\SESComponents\Maths.pas',
   ZStageUnit in 'ZStageUnit.pas' {ZStage: TDataModule};
 
@@ -74,7 +75,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'WinFluor V3.4.6';
+  Application.Title := 'WinFluor V3.4.8';
   Application.HelpFile := 'C:\Program Files\Borland\Delphi7\WinFluor\WINFLUOR.chm';
   Application.CreateForm(TMainFrm, MainFrm);
   Application.CreateForm(TAboutBox, AboutBox);

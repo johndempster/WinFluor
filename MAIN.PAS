@@ -415,6 +415,7 @@ type
     mnDigitalFilter: TMenuItem;
     Cam1: TSESCam;
     mnDirectControl: TMenuItem;
+    mnPowerCalibration: TMenuItem;
     procedure FileNew1Execute(Sender: TObject);
     procedure FileOpen1Execute(Sender: TObject);
     procedure HelpAbout1Execute(Sender: TObject);
@@ -476,6 +477,7 @@ type
     procedure mnExportROITimeCourseClick(Sender: TObject);
     procedure mnDigitalFilterClick(Sender: TObject);
     procedure mnDirectControlClick(Sender: TObject);
+    procedure mnPowerCalibrationClick(Sender: TObject);
   private
 
     procedure SetRecentFileItem(
@@ -689,7 +691,7 @@ uses About, RecUnit, ViewUnit, TimeCourseUnit,
   FilePropsUnit, SaveAsFileUnit, RecPlotUnit, StimulusDefaultsUnit,
   SpectrumUnit, SnapUnit, PhotoStimUnit, SmoothDifferentiateUnit,
   CameraSettingsUnit, ExportROITImeCourseUnit, DynamicProtocolSetupUnit,
-  DigitalFilterUnit, DirectControlUnit;
+  DigitalFilterUnit, DirectControlUnit, PowerCalibrationUnit;
 
 
 
@@ -2337,6 +2339,14 @@ begin
      mnStimSetup.Enabled := True ;
      for i := 0 to MDIChildCount-1 do if MDIChildren[i].Name = 'WavGenFrm' then mnStimSetup.Enabled := False ;
 
+     if (not IDRFile.Open) or
+        (IDRFile.NumFrames <= 0) or
+        (IDRFile.ADCNumChannels <= 0) then
+     // if True then
+       mnPowerCalibration.Enabled := False
+     else
+       mnPowerCalibration.Enabled := True;
+
      end;
 
 
@@ -2641,6 +2651,24 @@ begin
 
     end ;
 
+
+procedure TMainFrm.mnPowerCalibrationClick(Sender: TObject);
+begin
+  if FormExists( 'PowerCalibrationFrm' ) then
+  begin
+    if PowerCalibrationFrm.WindowState = wsMinimized then
+      PowerCalibrationFrm.WindowState := wsNormal;
+    PowerCalibrationFrm.BringToFront;
+    PowerCalibrationFrm.SetFocus;
+  end else
+  begin
+    PowerCalibrationFrm := TPowerCalibrationFrm.Create(Self);
+    PowerCalibrationFrm.Left := 20;
+    PowerCalibrationFrm.Top := 20;
+    PowerCalibrationFrm.Height := 450;
+    PowerCalibrationFrm.Width := 700;
+  end;
+end;
 
 end.
 
