@@ -106,6 +106,9 @@ type
     ZStageGrp: TGroupBox;
     edZPosition: TValidatedEdit;
     sbZPosition: TScrollBar;
+    FreezeGrp: TGroupBox;
+    bFreeze: TButton;
+    bResume: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
@@ -145,6 +148,8 @@ type
     procedure ckContrast6SDOnlyClick(Sender: TObject);
     procedure sbZPositionChange(Sender: TObject);
     procedure edZPositionKeyPress(Sender: TObject; var Key: Char);
+    procedure bFreezeClick(Sender: TObject);
+    procedure bResumeClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -201,6 +206,8 @@ type
     ClipboardImageFormat : Word ;
     ClipboardImageData: THandle ;
     ClipboardPalette : HPalette ;
+
+    FreezeFrame: Boolean;
 
     procedure FillBufferWithEmptyFlags( StartAt : Integer ; EndAt : Integer ) ;
     procedure SetDisplayIntensityRange(
@@ -341,6 +348,8 @@ begin
 
      Timer.Enabled := False ;
 
+     FreezeFrame := False;
+
      ttest := timegettime + 3000 ;
 
      end;
@@ -461,6 +470,9 @@ begin
                           ' TIFF (*.tif)|*.tif' ;
      SaveDialog.FilterIndex := 3 ;
      SnapNum := 1 ;
+
+     bFreeze.Enabled := True;
+     bResume.Enabled := False;
 
      MainFrm.StatusBar.SimpleText := ' Camera initialised' ;
 
@@ -2096,7 +2108,7 @@ begin
         end ;
 
      // Start camera
-     if not CameraRunning then StartCamera ;
+     if not CameraRunning and not FreezeFrame then StartCamera ;
 
      // Set Z stage control
      ZStageGrp.Visible := ZStage.Available ;
@@ -2107,7 +2119,7 @@ begin
      sbZPosition.Max := Round(ZStage.MaxPosition/ZStage.MinStepSize) ;
      sbZPosition.Position := Round(ZStage.Position/ZStage.MinStepSize) ;
 
-     Timer.Enabled := True ;
+     Timer.Enabled := not FreezeFrame ;
 
      end;
 
@@ -2758,5 +2770,23 @@ begin
          edZPosition.Value := ZStage.Position ;
          end ;
       end;
+
+procedure TSnapFrm.bFreezeClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  FreezeFrame := True;
+  StopLiveImaging;
+  bFreeze.Enabled := False;
+  bResume.Enabled := True;
+end;
+
+procedure TSnapFrm.bResumeClick(Sender: TObject);
+begin
+  FreezeFrame := False;
+  RestartCamera;
+  bFreeze.Enabled := True;
+  bResume.Enabled := False;
+end;
 
 end.
